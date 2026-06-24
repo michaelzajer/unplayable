@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Unplayable</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          turf: "#143d28",
+          fairway: "#2f7d4f",
+          paper: "#f4efe1",
+          ink: "#1c1b17",
+          stakeRed: "#c0392b",
+          stakeYellow: "#e0a200",
+          chalk: "#fbfaf5",
+        },
+        fontFamily: {
+          display: ['"Barlow Condensed"', "system-ui", "sans-serif"],
+          body: ["Inter", "system-ui", "sans-serif"],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body { background-color: #f4efe1; }
+  .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(20,61,40,.08) 31px 32px); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body class="font-body text-ink min-h-screen">
+
+  <header class="bg-turf text-chalk">
+    <div class="max-w-md mx-auto px-5 pt-7 pb-6">
+      <div class="font-display font-bold tracking-tight text-5xl leading-none">UNPLAYABLE</div>
+      <p class="mt-1 text-chalk/70 text-sm font-medium">Snap your lie. Get the ruling.</p>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-5 py-6 space-y-5">
+
+    <!-- Capture card -->
+    <section class="bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
+      <label for="photo" class="block cursor-pointer">
+        <div id="dropzone" class="ruled aspect-[4/3] flex flex-col items-center justify-center text-turf/70 px-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>
+          <div class="font-display font-semibold text-2xl mt-2 leading-tight">Photograph the lie</div>
+          <div class="text-sm text-turf/60 mt-0.5">Tap to use your camera</div>
+        </div>
+        <img id="preview" class="hidden w-full aspect-[4/3] object-cover" alt="Your lie" />
+      </label>
+      <input id="photo" type="file" accept="image/*" capture="environment" class="hidden" />
+
+      <div class="p-4 space-y-3">
+        <input id="note" type="text" maxlength="140"
+          placeholder="Add a note (optional) — e.g. up against a sprinkler head"
+          class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+        <button id="submit"
+          class="w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition disabled:opacity-50">
+          Get the ruling
+        </button>
+      </div>
+    </section>
+
+    <!-- Result card -->
+    <section id="result" class="hidden bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
+      <div class="flex">
+        <div id="stake" class="w-2 shrink-0"></div>
+        <div class="p-5 flex-1">
+          <div id="rulingType" class="font-display font-semibold uppercase tracking-widest text-xs"></div>
+          <h2 id="verdict" class="font-display font-bold text-3xl leading-tight mt-1"></h2>
+          <p id="situation" class="text-sm text-ink/60 mt-1"></p>
+          <p id="explanation" class="text-[15px] mt-3 leading-relaxed"></p>
+
+          <a id="ruleLink" href="#" target="_blank" rel="noopener"
+            class="hidden mt-4 items-center gap-1.5 text-fairway font-semibold text-sm">
+            <span id="ruleLabel"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+          </a>
+
+          <div id="confidenceRow" class="mt-4 flex items-center gap-2 text-xs text-ink/45">
+            <span id="confidence"></span>
+          </div>
+
+          <!-- Low-confidence describe-instead path -->
+          <div id="describe" class="hidden mt-4 pt-4 border-t border-ink/10">
+            <input id="describeNote" type="text" maxlength="140"
+              placeholder="Describe the lie in a sentence"
+              class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+            <button id="describeSubmit"
+              class="mt-2 w-full bg-ink/90 text-chalk font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">
+              Ask again
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
+      Always check the official rule. Unplayable settles the banter — it is not the match committee.
+    </p>
+  </main>
+
+<script>
+  const STAKE = {
+    free_relief:   { bar: "#2f7d4f", label: "Free relief", type: "text-fairway" },
+    penalty:       { bar: "#c0392b", label: "Penalty",     type: "text-stakeRed" },
+    play_as_it_lies:{ bar: "#1c1b17", label: "Play it as it lies", type: "text-ink" },
+    unclear:       { bar: "#e0a200", label: "Need a closer look", type: "text-stakeYellow" },
+  };
+
+  // Anonymous session id, no login.
+  let sessionId = localStorage.getItem("unplayable_session");
+  if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem("unplayable_session", sessionId); }
+
+  const $ = (id) => document.getElementById(id);
+  let currentBlob = null;
+
+  $("photo").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentBlob = await compress(file);
+    const url = URL.createObjectURL(currentBlob);
+    $("preview").src = url;
+    $("preview").classList.remove("hidden");
+    $("dropzone").classList.add("hidden");
+  });
+
+  // Resize to a 1024px long edge and re-encode as JPEG so uploads stay fast on patchy data.
+  async function compress(file) {
+    const bitmap = await createImageBitmap(file);
+    const maxEdge = 1024;
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+    return await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.72));
+  }
+
+  async function requestRuling({ blob, note }) {
+    const fd = new FormData();
+    if (blob) fd.append("photo", blob, "lie.jpg");
+    fd.append("note", note || "");
+    fd.append("session_id", sessionId);
+    const r = await fetch("/api/ruling", { method: "POST", body: fd });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || "Something went wrong. Try again.");
+    }
+    return await r.json();
+  }
+
+  function render(data) {
+    const stake = STAKE[data.ruling_type] || STAKE.unclear;
+    $("stake").style.backgroundColor = stake.bar;
+    $("rulingType").textContent = stake.label;
+    $("rulingType").className = "font-display font-semibold uppercase tracking-widest text-xs " + stake.type;
+    $("verdict").textContent = data.verdict || "—";
+    $("situation").textContent = data.situation || "";
+    $("explanation").textContent = data.explanation || "";
+
+    if (data.rule_number && data.rule_url) {
+      $("ruleLabel").textContent = "Read Rule " + data.rule_number + " on randa.org";
+      $("ruleLink").href = data.rule_url;
+      $("ruleLink").classList.remove("hidden");
+      $("ruleLink").classList.add("inline-flex");
+    } else {
+      $("ruleLink").classList.add("hidden");
+    }
+
+    const pct = Math.round((data.confidence || 0) * 100);
+    $("confidence").textContent = "Confidence " + pct + "%  ·  " + (data.model_used || "");
+
+    const lowConfidence = (data.confidence || 0) < 0.5 || data.ruling_type === "unclear";
+    $("describe").classList.toggle("hidden", !lowConfidence);
+
+    $("result").classList.remove("hidden");
+    $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function run(payload, btn) {
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Reading the lie…";
+    try {
+      render(await requestRuling(payload));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  $("submit").addEventListener("click", () => {
+    if (!currentBlob && !$("note").value.trim()) {
+      alert("Take a photo, or add a note describing the lie.");
+      return;
+    }
+    run({ blob: currentBlob, note: $("note").value.trim() }, $("submit"));
+  });
+
+  $("describeSubmit").addEventListener("click", () => {
+    const note = $("describeNote").value.trim();
+    if (!note) { alert("Describe the lie first."); return; }
+    run({ blob: null, note }, $("describeSubmit"));
+  });
+</script>
+</body>
+</html>

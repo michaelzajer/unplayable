@@ -1,0 +1,7 @@
+.env
+data/
+__pycache__/
+*.pyc
+scripts/test_photos/*
+scripts/results.csv
+!scripts/test_photos/.gitkeep
