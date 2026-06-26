@@ -6,5 +6,8 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      # Set DATABASE_URL to your managed Postgres in production.
+      # Leave it unset to use the local SQLite file in the mounted volume below.
+      - DATABASE_URL=${DATABASE_URL:-}
     volumes:
       - ./data:/app/data

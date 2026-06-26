@@ -160,15 +160,16 @@
   }
 
   function render(data) {
-    const stake = STAKE[data.ruling_type] || STAKE.unclear;
+    const offTopic = data.on_topic === false;
+    const stake = offTopic ? STAKE.unclear : (STAKE[data.ruling_type] || STAKE.unclear);
     $("stake").style.backgroundColor = stake.bar;
-    $("rulingType").textContent = stake.label;
+    $("rulingType").textContent = offTopic ? "Not a golf lie" : stake.label;
     $("rulingType").className = "font-display font-semibold uppercase tracking-widest text-xs " + stake.type;
     $("verdict").textContent = data.verdict || "—";
-    $("situation").textContent = data.situation || "";
+    $("situation").textContent = offTopic ? "" : (data.situation || "");
     $("explanation").textContent = data.explanation || "";
 
-    if (data.rule_number && data.rule_url) {
+    if (!offTopic && data.rule_number && data.rule_url) {
       $("ruleLabel").textContent = "Read Rule " + data.rule_number + " on randa.org";
       $("ruleLink").href = data.rule_url;
       $("ruleLink").classList.remove("hidden");
@@ -177,11 +178,17 @@
       $("ruleLink").classList.add("hidden");
     }
 
-    const pct = Math.round((data.confidence || 0) * 100);
-    $("confidence").textContent = "Confidence " + pct + "%  ·  " + (data.model_used || "");
-
-    const lowConfidence = (data.confidence || 0) < 0.5 || data.ruling_type === "unclear";
-    $("describe").classList.toggle("hidden", !lowConfidence);
+    // No confidence line or retry box on a refusal — do not invite repeated abuse.
+    if (offTopic) {
+      $("confidenceRow").classList.add("hidden");
+      $("describe").classList.add("hidden");
+    } else {
+      $("confidenceRow").classList.remove("hidden");
+      const pct = Math.round((data.confidence || 0) * 100);
+      $("confidence").textContent = "Confidence " + pct + "%  ·  " + (data.model_used || "");
+      const lowConfidence = (data.confidence || 0) < 0.5 || data.ruling_type === "unclear";
+      $("describe").classList.toggle("hidden", !lowConfidence);
+    }
 
     $("result").classList.remove("hidden");
     $("result").scrollIntoView({ behavior: "smooth", block: "start" });
