@@ -53,6 +53,11 @@ def index() -> FileResponse:
     return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
+@app.get("/about")
+def about() -> FileResponse:
+    return FileResponse(str(FRONTEND_DIR / "about.html"))
+
+
 @app.post("/api/ruling")
 async def ruling(
     photo: UploadFile | None = File(None),
