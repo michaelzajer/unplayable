@@ -57,6 +57,10 @@
         <img id="preview" class="hidden w-full aspect-[4/3] object-cover" alt="Your lie" />
       </label>
       <input id="photo" type="file" accept="image/*" class="hidden" />
+      <div class="px-4 pt-4 grid grid-cols-2 gap-2">
+        <button id="takeBtn" type="button" class="bg-turf/10 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">Take photo</button>
+        <button id="chooseBtn" type="button" class="bg-turf/10 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">Choose photo</button>
+      </div>
 
       <div class="p-4 space-y-3">
         <input id="note" type="text" maxlength="140"
@@ -122,6 +126,9 @@
 
   const $ = (id) => document.getElementById(id);
   let currentBlob = null;
+
+  $("takeBtn").addEventListener("click", () => { $("photo").setAttribute("capture","environment"); $("photo").click(); });
+  $("chooseBtn").addEventListener("click", () => { $("photo").removeAttribute("capture"); $("photo").click(); });
 
   $("photo").addEventListener("change", async (e) => {
     const file = e.target.files[0];
