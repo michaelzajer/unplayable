@@ -45,8 +45,11 @@
     --ink-amber:#C28400;
     --rule:#DFE6EB;
   }
-  html{background:var(--page);}
+  html{background:var(--page);-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  html,body{overflow-x:hidden;}
   body { background-color: #F4F8FB; font-family:'Karla',sans-serif; color:var(--pencil); }
+  /* 16px inputs stop iOS Safari zooming the page on focus (its trigger is <16px). */
+  input, textarea, select { font-size: 16px !important; }
   .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(23,128,184,.08) 31px 32px); }
   .font-display, .display { letter-spacing: .04em; }
   .mono{font-family:'IBM Plex Mono',monospace;}
@@ -78,7 +81,9 @@
   /* stamp chips: six compact buttons over the photo, all visible at once */
   .chips{
     position:absolute;left:.35rem;right:.35rem;bottom:.35rem;
-    display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
+    /* minmax(0,1fr): columns may shrink below label width, so the grid can
+       never force the page wider than the screen */
+    display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;
   }
   .chip{
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.03em;
@@ -87,8 +92,9 @@
     border:2px solid currentColor;background-color:rgba(255,255,255,.9);
     display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;
     transition:transform .08s ease,background .12s ease,color .12s ease;
-    overflow:hidden;
+    overflow:hidden;min-width:0;
   }
+  .chip .lbl{max-width:100%;overflow:hidden;text-overflow:ellipsis;}
   .chip svg{flex:none;width:12px;height:12px;}
   .chip .row{display:inline-flex;align-items:center;gap:.2rem;}
   .chip:active{transform:scale(.94);}
@@ -209,7 +215,7 @@
     <div id="feedView" class="space-y-4">
 
       <!-- Filter by stamp: shows lies where that stamp leads the count -->
-      <div id="filters" class="grid gap-1" style="grid-template-columns:repeat(7,1fr);" role="group" aria-label="Filter by stamp"></div>
+      <div id="filters" class="grid gap-1" style="grid-template-columns:repeat(7,minmax(0,1fr));" role="group" aria-label="Filter by stamp"></div>
 
       <!-- Worst-lie hero: real votes only, never seeded -->
       <button id="worst" class="hidden w-full text-left slip overflow-hidden">
@@ -368,7 +374,7 @@
           <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
         </svg>
       </button>
-      <div class="flex items-end justify-between px-12 pt-3 pb-3" style="background:var(--card);border-top:1px solid var(--rule);">
+      <div class="flex items-end justify-between px-12 pt-3" style="background:var(--card);border-top:1px solid var(--rule);padding-bottom:calc(0.75rem + env(safe-area-inset-bottom));">
         <button id="navFeed" class="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center font-display font-semibold uppercase text-[11px] tracking-wide" style="color:var(--fairway);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/></svg>
           Feed
@@ -416,9 +422,14 @@
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const $ = (id) => document.getElementById(id);
 
-  // Anonymous session id, no login.
+  // Anonymous session id, no login. crypto.randomUUID only exists on secure
+  // origins (https / localhost); fall back so LAN testing over http works too.
+  function makeId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "s-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+  }
   let sessionId = localStorage.getItem("unplayable_session");
-  if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem("unplayable_session", sessionId); }
+  if (!sessionId) { sessionId = makeId(); localStorage.setItem("unplayable_session", sessionId); }
 
   let currentBlob = null;
   let lastResult = null;
