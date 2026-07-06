@@ -265,6 +265,21 @@ def add_vote(submission_id: str, session_id: str, stamp: str) -> bool:
     return True
 
 
+def get_stamp_counts(submission_id: str) -> dict:
+    """Per-stamp tallies for one lie, every stamp present (zeros included)."""
+    with engine.connect() as conn:
+        rows = conn.execute(
+            select(vote.c.stamp, func.count(vote.c.id))
+            .where(vote.c.submission_id == submission_id)
+            .group_by(vote.c.stamp)
+        ).all()
+    counts = {s: 0 for s in STAMPS}
+    for stamp, n in rows:
+        if stamp in counts:
+            counts[stamp] = n
+    return counts
+
+
 def insert_feedback(rec: dict) -> str:
     fid = str(uuid.uuid4())
     with engine.begin() as conn:

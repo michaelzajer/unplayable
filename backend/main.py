@@ -152,6 +152,13 @@ _STAKE = {
     "play_as_it_lies": ("#1B2420", "Play it as it lies"),
     "unclear": ("#F5A623", "Ruling"),
 }
+
+# Stamp label + ink for the share page pills (traffic light, lucky to cursed).
+_STAMP_META = {
+    "gift": ("Gift", "#0FA958"), "fluke": ("Fluke", "#0FA958"),
+    "fair_cop": ("Fair cop", "#C28400"), "stiff": ("Stiff", "#C28400"),
+    "cooked": ("Cooked", "#E03131"), "brutal": ("Brutal", "#E03131"),
+}
 _SHARE_TEMPLATE = (FRONTEND_DIR / "share.html").read_text(encoding="utf-8")
 
 
@@ -194,7 +201,25 @@ def share(submission_id: str, request: Request):
                       f'class="inline-flex items-center gap-1.5 text-fairway font-semibold '
                       f'text-sm mt-4">Read Rule {esc(rn)} on randa.org</a>')
 
+    # The crowd's stamps: pills on the page, and the leader leads the preview text.
+    counts = db.get_stamp_counts(submission_id)
+    ranked = sorted(((k, n) for k, n in counts.items() if n > 0),
+                    key=lambda kn: kn[1], reverse=True)
+    if ranked:
+        pills = "".join(
+            f'<span class="pill" style="border-color:{_STAMP_META[k][1]};'
+            f'color:{_STAMP_META[k][1]};">{_STAMP_META[k][0]} ×{n}</span>'
+            for k, n in ranked)
+        stamp_block = (f'<div class="mt-4 flex flex-wrap gap-1.5" '
+                       f'aria-label="How golfers stamped this lie">{pills}</div>')
+    else:
+        stamp_block = ('<p class="mt-4 font-mono text-xs" style="color:#65706A;">'
+                       'NO STAMPS YET — BE THE FIRST</p>')
+
     desc = explanation or situation or "A golf rules ruling from Unplayable."
+    if ranked:
+        top_k, top_n = ranked[0]
+        desc = f"Stamped {_STAMP_META[top_k][0].upper()} ×{top_n} by golfers. {desc}"
 
     page = (
         _SHARE_TEMPLATE
@@ -210,6 +235,7 @@ def share(submission_id: str, request: Request):
         .replace("__VERDICT__", verdict)
         .replace("__SITUATION__", situation)
         .replace("__EXPLANATION__", explanation)
+        .replace("__STAMP_BLOCK__", stamp_block)
         .replace("__RULE_BLOCK__", rule_block)
     )
     return HTMLResponse(page)

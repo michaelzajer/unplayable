@@ -159,6 +159,13 @@ feed = client.get("/api/feed", params={"session_id": "s1"}).json()
 item = next(i for i in feed if i["id"] == new_id)
 check("vote: clear removes stamp", item["my_stamp"] is None and item["vote_count"] == 0)
 
+# --- Share page shows the crowd's stamps ---
+share_html = client.get("/r/legacy1").text  # legacy1 carries 2x brutal
+check("share page: stamp pills present", "Brutal ×2" in share_html)
+check("share page: leader in preview description", "Stamped BRUTAL ×2" in share_html)
+share_none = client.get(f"/r/{new_id}").text  # no votes yet at this point
+check("share page: honest empty state", "NO STAMPS YET" in share_none)
+
 # --- Feedback ---
 check("feedback: empty message rejected", client.post("/api/feedback",
       data={"message": "  "}).status_code == 400)
