@@ -83,6 +83,23 @@ are `ANTHROPIC_API_KEY` and `DATABASE_URL`. No persistent disk required.
 The app creates its tables on first start, so there is no separate migration step for
 the alpha.
 
+## Access gate
+
+To stop strangers spending your API key, set an `ACCESS_CODE` environment variable to a
+shared code. When it is set, the app shows a code screen and the server rejects any
+ruling or vote that does not carry the right code. Leave it unset (as on your local
+machine) and the app runs open. Change the code any time by updating the variable and
+redeploying; testers are simply re-prompted for the new one.
+
+On Cloud Run, add it to your deploy command's variables, for example:
+
+```
+--set-env-vars "^;^ANTHROPIC_API_KEY=...;ANTHROPIC_MODEL=claude-sonnet-4-6;DATABASE_URL=...;ACCESS_CODE=woodlands2026"
+```
+
+This is a shared code, not real accounts — enough to keep an alpha private among people
+you trust, and best paired with a spend cap in the Anthropic Console.
+
 ## Swapping the model
 
 Everything provider-specific lives in `backend/adapter.py`. Change `ANTHROPIC_MODEL` in
@@ -106,5 +123,6 @@ in any tracked file.
   URLs against the live R&A site before relying on them.
 - Image compression happens in the browser (1024px long edge, JPEG ~0.72) to keep
   uploads fast and database rows small.
-- This is an alpha: no auth, no rate limiting. Set an Anthropic spend cap and gate access
-  before sharing the URL.
+- This is an alpha: no real accounts, only the shared access code. Rulings, code checks,
+  votes and feedback are rate limited per IP. Still set an Anthropic spend cap before
+  sharing the URL. See CODE-REVIEW.md for the full security posture and open items.

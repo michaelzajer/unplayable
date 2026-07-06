@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The Feed — Unplayable</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --fairway:#29ABE2;
+    --card:#FFFFFF;
+    --page:#F4F8FB;
+    --pencil:#1B2420;
+    --pencil-soft:#65706A;
+    --ink-red:#E03131;
+    --ink-green:#0FA958;
+    --flag:#F5A623;
+    --rule:#DFE6EB;
+  }
+  html{background:var(--page);}
+  body{font-family:'Karla',sans-serif;color:var(--pencil);}
+  .display{font-family:'Oswald',sans-serif;letter-spacing:.04em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .slip{
+    background:var(--card);
+    border:1px solid var(--rule);
+    box-shadow:0 1px 0 rgba(27,36,32,.08),0 6px 18px -12px rgba(27,36,32,.35);
+    border-radius:6px;
+  }
+  .slip-head{
+    border-bottom:1px dashed var(--rule);
+    background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(150,165,178,.18) 6px 7px);
+  }
+
+  /* signature: rubber verdict stamp */
+  .stamp{
+    font-family:'Oswald',sans-serif;font-weight:700;
+    letter-spacing:.09em;text-transform:uppercase;
+    border:3px solid currentColor;border-radius:4px;
+    padding:.2rem .55rem;display:inline-block;
+    transform:rotate(-4deg);position:relative;
+    box-shadow:inset 0 0 0 1.5px var(--card);
+    -webkit-mask-image:radial-gradient(140% 120% at 30% 20%,#000 82%,rgba(0,0,0,.72) 100%);
+            mask-image:radial-gradient(140% 120% at 30% 20%,#000 82%,rgba(0,0,0,.72) 100%);
+  }
+  .stamp-red{color:var(--ink-red);}
+  .stamp-green{color:var(--ink-green);}
+  .stamp-neutral{color:var(--pencil);}
+
+  /* stamp chips: small reaction pills over the photo, count alongside */
+  .chips{
+    position:absolute;left:.5rem;right:.5rem;bottom:.5rem;
+    display:flex;gap:.35rem;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding:.35rem 0 .15rem; /* generous hit slop above the pills */
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.05em;
+    text-transform:uppercase;font-size:.7rem;line-height:1;white-space:nowrap;
+    min-height:36px;padding:0 .6rem;border-radius:999px;
+    border:2px solid currentColor;
+    background-color:rgba(255,255,255,.9);
+    display:inline-flex;align-items:center;gap:.3rem;
+    transition:transform .08s ease,background .12s ease,color .12s ease;
+  }
+  .chip:active{transform:scale(.94);}
+  .chip .n{font-family:'IBM Plex Mono',monospace;font-size:.64rem;opacity:.85;min-width:0;}
+  .chip .q{font-family:'IBM Plex Mono',monospace;font-size:.72rem;display:none;}
+  .chip.suggested{border-style:dashed;}
+  .chip.suggested .q{display:inline;}
+  .chip.stamped{color:var(--card);background-image:none;}
+  .chip.stamped.tone-green{background-color:var(--ink-green);border-color:var(--ink-green);}
+  .chip.stamped.tone-neutral{background-color:var(--pencil);border-color:var(--pencil);}
+  .chip.stamped.tone-red{background-color:var(--ink-red);border-color:var(--ink-red);}
+  @keyframes chipthunk{
+    0%{transform:scale(1.28);}
+    60%{transform:scale(.92);}
+    100%{transform:scale(1);}
+  }
+  .chip.just-stamped{animation:chipthunk .25s ease-out;}
+  .tone-green{color:var(--ink-green);}
+  .tone-neutral{color:var(--pencil);}
+  .tone-red{color:var(--ink-red);}
+
+  .suggest-note{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.05em;color:var(--pencil-soft);text-transform:uppercase;}
+
+  .tab{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;font-size:.8rem;
+    padding:.65rem .25rem;min-height:44px;color:var(--pencil-soft);
+    border-bottom:3px solid transparent;
+  }
+  .tab[aria-selected="true"]{color:var(--fairway);border-bottom-color:var(--fairway);}
+
+  :focus-visible{outline:3px solid var(--flag);outline-offset:2px;border-radius:4px;}
+
+  @media (prefers-reduced-motion:reduce){
+    .vote,.vote:active,.vote.stamped{transition:none;transform:none;animation:none;}
+    .stamp,.pick{transform:none;}
+  }
+</style>
+</head>
+<body class="min-h-screen pb-28">
+
+  <header class="sticky top-0 z-20" style="background:var(--fairway);">
+    <div class="max-w-md mx-auto px-4 pt-4 pb-3">
+      <div class="flex items-baseline justify-between">
+        <a href="/" class="display text-2xl font-bold uppercase" style="color:var(--card);">Unplayable</a>
+        <span class="mono text-[11px]" style="color:#D6EFFB;">a guide, not the match committee</span>
+      </div>
+    </div>
+    <nav class="max-w-md mx-auto px-4 flex gap-6" style="background:var(--card);border-bottom:1px solid var(--rule);" role="tablist" aria-label="Feed views">
+      <button class="tab" role="tab" aria-selected="true" data-tab="latest">Latest</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="worst">Worst lies</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="mine">My lies</button>
+    </nav>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+    <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
+    <div id="empty" class="hidden text-center py-12">
+      <p class="display text-2xl uppercase" style="color:var(--fairway);">Nothing here yet</p>
+      <p id="emptyHint" class="mt-2 text-sm" style="color:var(--pencil-soft);">Be the first — get a ruling and tap “Post to the feed”.</p>
+    </div>
+    <div id="list" class="space-y-4"></div>
+  </main>
+
+  <div class="fixed bottom-0 inset-x-0 z-30" style="background:linear-gradient(to top,var(--page) 65%,transparent);">
+    <div class="max-w-md mx-auto px-4 pb-4 pt-6">
+      <a href="/" class="display w-full uppercase font-semibold tracking-wider text-lg rounded-md min-h-[52px] flex items-center justify-center gap-2"
+              style="background:var(--fairway);color:var(--card);box-shadow:0 8px 20px -10px rgba(23,128,184,.6);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
+        </svg>
+        Get a ruling
+      </a>
+    </div>
+  </div>
+
+<script>
+  // The six stamps, lucky to cursed. Keys mirror the backend enum exactly.
+  const STAMPS = {
+    gift:     { label: "Gift",     tone: "tone-green" },
+    fluke:    { label: "Fluke",    tone: "tone-green" },
+    fair_cop: { label: "Fair cop", tone: "tone-neutral" },
+    stiff:    { label: "Stiff",    tone: "tone-neutral" },
+    cooked:   { label: "Cooked",   tone: "tone-red" },
+    brutal:   { label: "Brutal",   tone: "tone-red" },
+  };
+  const STAMP_KEYS = Object.keys(STAMPS);
+
+  // Verdict stamp ink over the photo: green for favourable, red for unfavourable.
+  const VERDICT_TONE = {
+    free_relief: "stamp-green", penalty: "stamp-red",
+    play_as_it_lies: "stamp-red", unclear: "stamp-neutral",
+  };
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (id) => document.getElementById(id);
+
+  let sessionId = localStorage.getItem("unplayable_session");
+  if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem("unplayable_session", sessionId); }
+
+  let currentTab = "latest";
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function relTime(iso) {
+    const t = new Date(iso);
+    if (isNaN(t)) return "";
+    const mins = Math.max(0, Math.round((Date.now() - t.getTime()) / 60000));
+    if (mins < 60) return mins + "M AGO";
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + "H AGO";
+    const days = Math.round(hrs / 24);
+    if (days < 7) return days + "D AGO";
+    return t.toLocaleDateString("en-AU", { day: "numeric", month: "short" }).toUpperCase();
+  }
+
+  function card(item) {
+    const el = document.createElement("article");
+    el.className = "slip overflow-hidden";
+    const suggestedKey = STAMPS[item.suggested_stamp] ? item.suggested_stamp : "fair_cop";
+    const myKey = STAMPS[item.my_stamp] ? item.my_stamp : null;
+    const counts = item.stamp_counts || {};
+    const vTone = VERDICT_TONE[item.ruling_type] || "stamp-neutral";
+    const headLeft = item.rule_number ? "R&amp;A RULE " + esc(item.rule_number) : "THE LIE";
+
+    const img = item.image_path
+      ? `<img src="${esc(item.image_path)}" class="w-full aspect-[4/3] object-cover block" alt="The lie" loading="lazy" />`
+      : `<div class="w-full aspect-[4/3]" style="background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(150,165,178,.25) 6px 7px),var(--card);"></div>`;
+
+    el.innerHTML = `
+      <div class="slip-head flex items-center justify-between px-3 py-2">
+        <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
+        <span class="mono text-xs" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
+      </div>
+      <div class="relative">
+        ${img}
+        <span class="stamp ${vTone} absolute top-3 left-3 text-lg" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
+        <div class="chips" role="group" aria-label="Stamp this lie">
+          ${STAMP_KEYS.map((k) =>
+            `<button class="chip ${STAMPS[k].tone}" data-chip="${k}" aria-pressed="false">${STAMPS[k].label}<span class="q">?</span><span class="n" data-n="${k}"></span></button>`
+          ).join("")}
+        </div>
+      </div>
+      <div class="px-3 pt-3 pb-1">
+        <p class="text-[15px] leading-snug">${esc(item.explanation || item.situation || "")}</p>
+      </div>
+      <div class="px-3 pt-1 pb-2 flex items-center justify-between" data-votes>
+        <span class="suggest-note" data-hint></span>
+        <button class="mono text-xs underline underline-offset-4 min-h-[44px] px-2" data-share style="color:var(--pencil-soft);">Share</button>
+      </div>`;
+
+    wireVotes(el, item, suggestedKey, myKey, counts);
+    el.querySelector("[data-share]").addEventListener("click", () => shareLie(item));
+    return el;
+  }
+
+  function wireVotes(el, item, suggestedKey, myKey, counts) {
+    const chips = el.querySelectorAll("[data-chip]");
+    const hint = el.querySelector("[data-hint]");
+    const tallies = { ...counts };
+    let choice = myKey; // the caller's current stamp, or null
+
+    const render = () => {
+      const total = STAMP_KEYS.reduce((sum, k) => sum + (tallies[k] || 0), 0);
+      let leader = null;
+      chips.forEach((c) => {
+        const k = c.dataset.chip;
+        const n = tallies[k] || 0;
+        c.querySelector(".n").textContent = n > 0 ? n : "";
+        c.setAttribute("aria-label",
+          STAMPS[k].label + (n > 0 ? ", " + n + " of " + total + " stamps" : ""));
+        c.classList.toggle("stamped", choice === k);
+        c.setAttribute("aria-pressed", String(choice === k));
+        // The app's pick stays dashed with a "?" until a human stamps.
+        c.classList.toggle("suggested", !choice && k === suggestedKey);
+        if (n > 0 && (!leader || n > leader.n)) leader = { k, n };
+      });
+      const lead = leader
+        ? STAMPS[leader.k].label.toUpperCase() + " leads ×" + leader.n + " of " + total
+        : null;
+      hint.textContent = choice
+        ? (lead ? lead + " · tap your stamp to clear" : "Tap your stamp to clear it")
+        : (lead ? lead + " · rate the ruling" : "Rate the ruling · dashed = the app's pick");
+    };
+
+    const sync = async (stamp) => {
+      const fd = new FormData();
+      fd.append("submission_id", item.id);
+      fd.append("stamp", stamp);
+      fd.append("session_id", sessionId);
+      const headers = {};
+      const code = localStorage.getItem("unplayable_access");
+      if (code) headers["X-Access-Code"] = code;
+      const r = await fetch("/api/vote", { method: "POST", body: fd, headers });
+      if (r.status === 401) {
+        alert("Open the app and enter the access code first, then come back to stamp.");
+        return false;
+      }
+      return r.ok;
+    };
+
+    const apply = (key, chipEl) => {
+      // Optimistic: stamp lands immediately, API sync follows.
+      const prev = choice;
+      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
+      choice = key;
+      tallies[key] = (tallies[key] || 0) + 1;
+      render();
+      if (!reduced && chipEl) {
+        chipEl.classList.remove("just-stamped"); void chipEl.offsetWidth;
+        chipEl.classList.add("just-stamped");
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
+      sync(key).then((ok) => { if (!ok) { // roll back on failure
+        tallies[key] = Math.max(0, (tallies[key] || 0) - 1);
+        choice = prev;
+        if (prev) tallies[prev] = (tallies[prev] || 0) + 1;
+        render();
+      }});
+    };
+
+    const clear = () => {
+      const prev = choice;
+      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
+      choice = null;
+      render();
+      sync("clear").then((ok) => { if (!ok && prev) {
+        choice = prev; tallies[prev] = (tallies[prev] || 0) + 1;
+        render();
+      }});
+    };
+
+    chips.forEach((c) => {
+      c.addEventListener("click", () => {
+        const k = c.dataset.chip;
+        choice === k ? clear() : apply(k, c);
+      });
+    });
+
+    render();
+  }
+
+  async function shareLie(item) {
+    const url = location.origin + "/r/" + item.id;
+    const text = (item.verdict || "A golf ruling")
+      + (item.rule_number ? " — Rule " + item.rule_number : "");
+    try {
+      if (navigator.share) await navigator.share({ title: "Unplayable", text, url });
+      else { await navigator.clipboard.writeText(url); alert("Link copied."); }
+    } catch (e) { /* dismissed */ }
+  }
+
+  async function load() {
+    $("loading").classList.remove("hidden");
+    $("empty").classList.add("hidden");
+    const list = $("list");
+    list.innerHTML = "";
+    try {
+      const params = new URLSearchParams({ session_id: sessionId });
+      if (currentTab === "worst") params.set("sort", "worst");
+      if (currentTab === "mine") params.set("mine", "1");
+      const r = await fetch("/api/feed?" + params.toString());
+      const items = await r.json();
+      $("loading").classList.add("hidden");
+      if (!items.length) {
+        $("emptyHint").textContent = currentTab === "mine"
+          ? "No lies of yours yet — get a ruling and post it."
+          : "Be the first — get a ruling and tap “Post to the feed”.";
+        $("empty").classList.remove("hidden");
+        return;
+      }
+      items.forEach((item) => list.appendChild(card(item)));
+    } catch (e) {
+      $("loading").textContent = "Could not load the feed. Try again shortly.";
+    }
+  }
+
+  document.querySelectorAll("[data-tab]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentTab = tab.dataset.tab;
+      document.querySelectorAll("[data-tab]").forEach((t) =>
+        t.setAttribute("aria-selected", String(t === tab)));
+      load();
+    });
+  });
+
+  load();
+</script>
+</body>
+</html>

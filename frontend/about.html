@@ -7,18 +7,22 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <script>
   tailwind.config = {
     theme: { extend: {
-      colors: { turf:"#143d28", fairway:"#2f7d4f", paper:"#f4efe1", ink:"#1c1b17", stakeRed:"#c0392b", stakeYellow:"#e0a200", chalk:"#fbfaf5" },
-      fontFamily: { display:['"Barlow Condensed"',"system-ui","sans-serif"], body:["Inter","system-ui","sans-serif"] },
+      colors: { turf:"#29ABE2", fairway:"#0FA958", paper:"#F4F8FB", ink:"#1B2420", stakeRed:"#E03131", stakeYellow:"#F5A623", chalk:"#FFFFFF" },
+      fontFamily: { display:["Oswald","system-ui","sans-serif"], body:["Karla","system-ui","sans-serif"], mono:['"IBM Plex Mono"',"monospace"] },
     } },
   };
 </script>
-<style> body { background-color:#f4efe1; } </style>
+<style>
+  body { background-color:#F4F8FB; }
+  .font-display { letter-spacing:.04em; }
+  :focus-visible { outline:3px solid #F5A623; outline-offset:2px; border-radius:4px; }
+</style>
 </head>
-<body class="font-body text-ink min-h-screen">
+<body class="font-body text-ink min-h-screen pb-28">
 
   <header class="bg-turf text-chalk">
     <div class="max-w-lg mx-auto px-5 pt-7 pb-6">
@@ -52,17 +56,38 @@
 
     <section>
       <h2 class="font-display font-semibold text-2xl text-turf">Who made this</h2>
-      <p class="mt-2 leading-relaxed">Unplayable was built by a Woodlands member who got tired of standing over a weird lie arguing about whether there was free relief. It started as a way to settle those arguments quickly, and grew from there.</p>
+      <p class="mt-2 leading-relaxed">Unplayable was built by a golfer who got tired of standing over a weird lie arguing about whether there was free relief. It started as a way to settle those arguments quickly, and grew from there.</p>
     </section>
 
-    <section>
+    <section id="feedback">
       <h2 class="font-display font-semibold text-2xl text-turf">Tell me when it is wrong</h2>
-      <p class="mt-2 leading-relaxed">If a ruling looks off, say so — <a href="mailto:hello@unplayable.golf" class="text-fairway font-semibold">hello@unplayable.golf</a>. Those reports are the single best way to make it sharper, because they show exactly where the rules reading needs work.</p>
+      <p class="mt-2 leading-relaxed">If a ruling looks off, that is worth knowing. Those reports are the single best way to make it sharper, because they show exactly where the rules reading needs work.</p>
+      <a href="/feedback" class="inline-block mt-3 bg-turf text-chalk font-display font-semibold text-lg rounded-lg px-5 py-2.5 active:scale-[.99] transition">Report a wrong call</a>
     </section>
-
-    <p class="text-center pt-2">
-      <a href="/" class="text-fairway font-display font-semibold text-lg">Back to Unplayable</a>
-    </p>
   </main>
+
+  <!-- Bottom bar, same as the app -->
+  <div class="fixed bottom-0 inset-x-0 z-30">
+    <div class="max-w-md mx-auto relative">
+      <a href="/#snap" aria-label="Snap a lie"
+        class="absolute left-1/2 -translate-x-1/2 -top-7 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition"
+        style="background:#29ABE2;color:#FFFFFF;border:3px solid #FFFFFF;box-shadow:0 8px 20px -6px rgba(23,128,184,.55);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
+        </svg>
+      </a>
+      <div class="flex items-end justify-between px-12 pt-3 pb-3" style="background:#FFFFFF;border-top:1px solid #DFE6EB;">
+        <a href="/" class="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center font-display font-semibold uppercase text-[11px] tracking-wide" style="color:#65706A;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/></svg>
+          Feed
+        </a>
+        <span class="font-display font-semibold uppercase text-[11px] tracking-wide pb-0.5" style="color:#29ABE2;">Snap</span>
+        <span class="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center font-display font-semibold uppercase text-[11px] tracking-wide" style="color:#29ABE2;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>
+          About
+        </span>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

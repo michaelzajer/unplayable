@@ -5,3 +5,6 @@ __pycache__/
 scripts/test_photos/*
 scripts/results.csv
 !scripts/test_photos/.gitkeep
+scripts/seed_photos/
+.venv/
+.DS_Store

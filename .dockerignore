@@ -1,0 +1,12 @@
+# Never bake secrets or local state into the image.
+.env
+data/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.DS_Store
+scripts/test_photos/
+scripts/results.csv
+scripts/seed_photos/

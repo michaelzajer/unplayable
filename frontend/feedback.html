@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tell me when it is wrong — Unplayable</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { turf:"#29ABE2", fairway:"#0FA958", paper:"#F4F8FB", ink:"#1B2420", stakeRed:"#E03131", stakeYellow:"#F5A623", chalk:"#FFFFFF" },
+      fontFamily: { display:["Oswald","system-ui","sans-serif"], body:["Karla","system-ui","sans-serif"], mono:['"IBM Plex Mono"',"monospace"] },
+    } },
+  };
+</script>
+<style>
+  body { background-color:#F4F8FB; }
+  .font-display { letter-spacing:.04em; }
+  :focus-visible { outline:3px solid #F5A623; outline-offset:2px; border-radius:4px; }
+</style>
+</head>
+<body class="font-body text-ink min-h-screen">
+
+  <header class="bg-turf text-chalk">
+    <div class="max-w-md mx-auto px-5 pt-6 pb-5">
+      <a href="/" class="text-chalk/70 text-sm font-medium hover:text-chalk">&larr; Back to the app</a>
+      <div class="font-display font-bold tracking-tight text-4xl leading-none mt-2 uppercase">Wrong call?</div>
+      <p class="text-chalk/70 text-sm mt-1">Reports like this are the single best way to make the rulings sharper.</p>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-5 py-6">
+    <section id="form" class="bg-chalk rounded-2xl shadow-sm border border-ink/10 p-5 space-y-3">
+      <p id="rulingRef" class="hidden font-mono text-xs" style="color:#65706A;"></p>
+      <label for="message" class="block font-display font-semibold text-lg text-ink">What did it get wrong?</label>
+      <textarea id="message" rows="5" maxlength="2000"
+        placeholder="e.g. It said free relief from the path, but the ball was inside a penalty area — red stakes on the left."
+        class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-turf/40"></textarea>
+      <input id="contact" type="email" maxlength="120"
+        placeholder="Email (optional — only if you want a reply)"
+        class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-turf/40" />
+      <button id="send"
+        class="w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition disabled:opacity-50">
+        Send it in
+      </button>
+      <p id="error" class="hidden text-stakeRed text-sm"></p>
+    </section>
+
+    <section id="thanks" class="hidden bg-chalk rounded-2xl shadow-sm border border-ink/10 p-6 text-center">
+      <p class="font-display font-semibold text-2xl text-turf uppercase">Got it — thanks</p>
+      <p class="mt-2 text-sm text-ink/70">Every report makes the next ruling better.</p>
+      <a href="/" class="inline-block mt-4 bg-turf text-chalk font-display font-semibold text-lg rounded-lg px-5 py-2.5">Back to the app</a>
+    </section>
+
+    <p class="text-center text-xs text-ink/40 px-6 mt-5 leading-relaxed">
+      Always check the official rule. Unplayable settles the banter — it is not the match committee.
+    </p>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const rulingId = (params.get("ruling") || "").slice(0, 64);
+  if (rulingId) {
+    $("rulingRef").textContent = "ABOUT RULING " + rulingId.slice(0, 8).toUpperCase() + "…";
+    $("rulingRef").classList.remove("hidden");
+  }
+  const sessionId = localStorage.getItem("unplayable_session") || "";
+
+  $("send").addEventListener("click", async () => {
+    const message = $("message").value.trim();
+    if (!message) {
+      $("error").textContent = "Say what went wrong first.";
+      $("error").classList.remove("hidden");
+      return;
+    }
+    $("send").disabled = true;
+    $("error").classList.add("hidden");
+    try {
+      const fd = new FormData();
+      fd.append("message", message);
+      fd.append("contact", $("contact").value.trim());
+      fd.append("submission_id", rulingId);
+      fd.append("session_id", sessionId);
+      const r = await fetch("/api/feedback", { method: "POST", body: fd });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Could not send that. Try again shortly.");
+      }
+      $("form").classList.add("hidden");
+      $("thanks").classList.remove("hidden");
+    } catch (e) {
+      $("error").textContent = e.message;
+      $("error").classList.remove("hidden");
+      $("send").disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

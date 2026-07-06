@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>__TITLE__ — Unplayable</title>
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Unplayable" />
+<meta property="og:title" content="__TITLE__" />
+<meta property="og:description" content="__DESC__" />
+<meta property="og:url" content="__SHARE_URL__" />
+__OG_IMAGE__
+<meta name="twitter:card" content="__TWITTER_CARD__" />
+<meta name="twitter:title" content="__TITLE__" />
+<meta name="twitter:description" content="__DESC__" />
+__OG_IMAGE_TW__
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { turf:"#29ABE2", fairway:"#0FA958", paper:"#F4F8FB", ink:"#1B2420", stakeRed:"#E03131", stakeYellow:"#F5A623", chalk:"#FFFFFF" },
+      fontFamily: { display:["Oswald","system-ui","sans-serif"], body:["Karla","system-ui","sans-serif"], mono:['"IBM Plex Mono"',"monospace"] },
+    } },
+  };
+</script>
+<style>
+  body { background-color:#F4F8FB; }
+  .font-display { letter-spacing:.04em; }
+  .stamp {
+    font-family:'Oswald',sans-serif;font-weight:700;
+    letter-spacing:.09em;text-transform:uppercase;
+    border:3px solid currentColor;border-radius:4px;
+    padding:.2rem .55rem;display:inline-block;
+    transform:rotate(-4deg);
+    box-shadow:inset 0 0 0 1.5px #FFFFFF;
+    -webkit-mask-image:radial-gradient(140% 120% at 30% 20%,#000 82%,rgba(0,0,0,.72) 100%);
+            mask-image:radial-gradient(140% 120% at 30% 20%,#000 82%,rgba(0,0,0,.72) 100%);
+  }
+  @media (prefers-reduced-motion:reduce){ .stamp{transform:none;} }
+</style>
+</head>
+<body class="font-body text-ink min-h-screen">
+
+  <header class="bg-turf text-chalk">
+    <div class="max-w-md mx-auto px-5 pt-6 pb-5">
+      <a href="/" class="font-display font-bold tracking-tight text-3xl leading-none">UNPLAYABLE</a>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-5 py-6 space-y-5">
+    __IMAGE_BLOCK__
+
+    <section class="bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
+      <div class="flex">
+        <div class="w-2 shrink-0" style="background:__STAKE__"></div>
+        <div class="p-5 flex-1">
+          <div class="font-display font-semibold uppercase tracking-widest text-xs" style="color:__STAKE__">__LABEL__</div>
+          <h1 class="stamp text-2xl mt-3" style="color:__STAKE__">__VERDICT__</h1>
+          <p class="text-sm text-ink/60 mt-1">__SITUATION__</p>
+          <p class="text-[15px] mt-3 leading-relaxed">__EXPLANATION__</p>
+          __RULE_BLOCK__
+        </div>
+      </div>
+    </section>
+
+    <a href="/" class="block text-center bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition">
+      Get your own ruling
+    </a>
+    <p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
+      Always check the official rule. Unplayable settles the banter — it is not the match committee.
+    </p>
+  </main>
+</body>
+</html>

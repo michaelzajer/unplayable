@@ -7,131 +7,732 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          turf: "#143d28",
-          fairway: "#2f7d4f",
-          paper: "#f4efe1",
-          ink: "#1c1b17",
-          stakeRed: "#c0392b",
-          stakeYellow: "#e0a200",
-          chalk: "#fbfaf5",
+          turf: "#29ABE2",      /* --fairway */
+          fairway: "#0FA958",   /* --ink-green */
+          paper: "#F4F8FB",     /* --page */
+          ink: "#1B2420",       /* --pencil */
+          inkSoft: "#65706A",   /* --pencil-soft */
+          stakeRed: "#E03131",  /* --ink-red */
+          stakeYellow: "#F5A623", /* --flag */
+          chalk: "#FFFFFF",     /* --card */
+          ruleLine: "#DFE6EB",  /* --rule */
         },
         fontFamily: {
-          display: ['"Barlow Condensed"', "system-ui", "sans-serif"],
-          body: ["Inter", "system-ui", "sans-serif"],
+          display: ["Oswald", "system-ui", "sans-serif"],
+          body: ["Karla", "system-ui", "sans-serif"],
+          mono: ['"IBM Plex Mono"', "monospace"],
         },
       },
     },
   };
 </script>
 <style>
-  body { background-color: #f4efe1; }
-  .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(20,61,40,.08) 31px 32px); }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  :root{
+    --fairway:#29ABE2;
+    --card:#FFFFFF;
+    --page:#F4F8FB;
+    --pencil:#1B2420;
+    --pencil-soft:#65706A;
+    --ink-red:#E03131;
+    --ink-green:#0FA958;
+    --flag:#F5A623;
+    --ink-amber:#C28400;
+    --rule:#DFE6EB;
+  }
+  html{background:var(--page);}
+  body { background-color: #F4F8FB; font-family:'Karla',sans-serif; color:var(--pencil); }
+  .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(23,128,184,.08) 31px 32px); }
+  .font-display, .display { letter-spacing: .04em; }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .slip{
+    background:var(--card);
+    border:1px solid var(--rule);
+    box-shadow:0 1px 0 rgba(27,36,32,.08),0 6px 18px -12px rgba(27,36,32,.35);
+    border-radius:6px;
+  }
+  .slip-head{
+    border-bottom:1px dashed var(--rule);
+    background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(150,165,178,.18) 6px 7px);
+  }
+
+  /* rubber verdict stamp */
+  .stamp {
+    font-family: 'Oswald', sans-serif; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase;
+    border: 3px solid currentColor; border-radius: 4px;
+    padding: .2rem .55rem; display: inline-block;
+    transform: rotate(-4deg);
+    box-shadow: inset 0 0 0 1.5px #FFFFFF;
+    -webkit-mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
+            mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
+  }
+  .stamp-red { color: #E03131; } .stamp-green { color: #0FA958; } .stamp-neutral { color: #1B2420; } .stamp-flag { color: #F5A623; }
+
+  /* stamp chips: six compact buttons over the photo, all visible at once */
+  .chips{
+    position:absolute;left:.35rem;right:.35rem;bottom:.35rem;
+    display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
+  }
+  .chip{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.03em;
+    text-transform:uppercase;font-size:.55rem;line-height:1;white-space:nowrap;
+    min-height:46px;padding:.25rem .1rem;border-radius:8px;
+    border:2px solid currentColor;background-color:rgba(255,255,255,.9);
+    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;
+    transition:transform .08s ease,background .12s ease,color .12s ease;
+    overflow:hidden;
+  }
+  .chip svg{flex:none;width:12px;height:12px;}
+  .chip .row{display:inline-flex;align-items:center;gap:.2rem;}
+  .chip:active{transform:scale(.94);}
+  .chip .n{font-family:'IBM Plex Mono',monospace;font-size:.64rem;opacity:.85;}
+  .chip .q{font-family:'IBM Plex Mono',monospace;font-size:.72rem;display:none;}
+  .chip.suggested{border-style:dashed;}
+  .chip.suggested .q{display:inline;}
+  .chip.stamped{color:var(--card);}
+  .chip.stamped.tone-green{background-color:var(--ink-green);border-color:var(--ink-green);}
+  .chip.stamped.tone-neutral{background-color:var(--ink-amber);border-color:var(--ink-amber);}
+  .chip.stamped.tone-red{background-color:var(--ink-red);border-color:var(--ink-red);}
+  .chip.stamped.tone-ink{background-color:var(--pencil);border-color:var(--pencil);}
+  @keyframes chipthunk{
+    0%{transform:scale(1.28);}
+    60%{transform:scale(.92);}
+    100%{transform:scale(1);}
+  }
+  .chip.just-stamped{animation:chipthunk .25s ease-out;}
+  .tone-green{color:var(--ink-green);}
+  .tone-neutral{color:var(--ink-amber);}
+  .tone-red{color:var(--ink-red);}
+  .tone-ink{color:var(--pencil);}
+  .suggest-note{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.05em;color:var(--pencil-soft);text-transform:uppercase;}
+
+  /* result-page stamp control: suggested (dashed) -> stamped (solid ink) */
+  .vote {
+    font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase;
+    border: 2.5px dashed currentColor; border-radius: 4px;
+    min-height: 44px; padding: 0 .9rem;
+    display: inline-flex; align-items: center; gap: .5rem; background: transparent;
+    transition: transform .08s ease, background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .vote:active { transform: scale(.96) rotate(-1deg); }
+  .vote.tone-green { color: #0FA958; }
+  .vote.tone-neutral { color: #C28400; }
+  .vote.tone-red { color: #E03131; }
+  .vote.stamped { border-style: solid; color: #FFFFFF; transform: rotate(-2deg); }
+  .vote.stamped.tone-green { background: #0FA958; border-color: #0FA958; }
+  .vote.stamped.tone-neutral { background: #C28400; border-color: #C28400; }
+  .vote.stamped.tone-red { background: #E03131; border-color: #E03131; }
+  @keyframes thunk {
+    0% { transform: rotate(-2deg) scale(1.25); }
+    60% { transform: rotate(-2deg) scale(.94); }
+    100% { transform: rotate(-2deg) scale(1); }
+  }
+  .vote.just-stamped { animation: thunk .28s ease-out; }
+  .more {
+    min-height: 44px; min-width: 44px; border-radius: 4px;
+    border: 2.5px solid transparent; color: #65706A;
+    font-size: 1.3rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .picker {
+    display: flex; gap: .5rem; overflow-x: auto; padding: .65rem .1rem .25rem;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .picker::-webkit-scrollbar { display: none; }
+  .pick {
+    font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; font-size: .8rem; white-space: nowrap;
+    border: 2.5px solid currentColor; border-radius: 4px;
+    min-height: 44px; padding: 0 .7rem; background: transparent;
+    display: inline-flex; align-items: center; gap: .4rem;
+    transform: rotate(-2deg);
+  }
+  .pick:nth-child(even) { transform: rotate(1.5deg); }
+
+  .tab{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;font-size:.8rem;
+    padding:.65rem .25rem;min-height:44px;color:var(--pencil-soft);
+    border-bottom:3px solid transparent;
+  }
+  .tab[aria-selected="true"]{color:var(--fairway);border-bottom-color:var(--fairway);}
+
+  :focus-visible { outline: 3px solid #F5A623; outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .stamp, .vote, .vote.stamped, .pick { transform: none; }
+  }
 </style>
 </head>
-<body class="font-body text-ink min-h-screen">
+<body class="min-h-screen pb-32">
 
-  <header class="bg-turf text-chalk">
-    <div class="max-w-md mx-auto px-5 pt-7 pb-6">
-      <div class="font-display font-bold tracking-tight text-5xl leading-none">UNPLAYABLE</div>
-      <p class="mt-1 text-chalk/70 text-sm font-medium">Snap your lie. Get the ruling.</p>
+  <header class="sticky top-0 z-20" style="background:var(--fairway);">
+    <div class="max-w-md mx-auto px-4 pt-4 pb-3">
+      <div class="flex items-baseline justify-between">
+        <span class="display font-display text-2xl font-bold uppercase" style="color:var(--card);">Unplayable</span>
+        <span class="mono text-[11px]" style="color:#D6EFFB;">snap your lie · get the ruling</span>
+      </div>
     </div>
+    <nav id="tabs" class="max-w-md mx-auto px-4 flex gap-6" style="background:var(--card);border-bottom:1px solid var(--rule);" role="tablist" aria-label="Feed views">
+      <button class="tab" role="tab" aria-selected="true" data-tab="latest">Latest</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="worst">Worst lies</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="mine">My lies</button>
+    </nav>
   </header>
 
-  <main class="max-w-md mx-auto px-5 py-6 space-y-5">
+  <!-- Access gate (shown only when the server requires a code) -->
+  <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(23,128,184,.96);">
+    <div class="bg-chalk rounded-2xl shadow-lg border border-ink/10 w-full max-w-sm p-6 text-center">
+      <div class="font-display font-bold text-3xl text-turf leading-none uppercase">Unplayable</div>
+      <p class="text-sm text-ink/60 mt-2">Enter the access code to use the app.</p>
+      <input id="gateCode" type="text" inputmode="text" autocomplete="off"
+        placeholder="Access code"
+        class="mt-4 w-full text-center rounded-lg border border-ink/15 bg-paper/60 px-3 py-3 text-base tracking-wide focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+      <p id="gateError" class="hidden text-stakeRed text-sm mt-2">That code is not right.</p>
+      <button id="gateSubmit"
+        class="mt-4 w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition disabled:opacity-50">
+        Enter
+      </button>
+    </div>
+  </div>
 
-    <!-- Capture card -->
-    <section class="bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
-      <label for="photo" class="block cursor-pointer">
-        <div id="dropzone" class="ruled aspect-[4/3] flex flex-col items-center justify-center text-turf/70 px-6 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>
-          <div class="font-display font-semibold text-2xl mt-2 leading-tight">Photograph the lie</div>
-          <div class="text-sm text-turf/60 mt-0.5">Tap to use your camera</div>
+  <main id="app" class="hidden max-w-md mx-auto px-4 pt-4">
+
+    <!-- ============ FEED VIEW (home) ============ -->
+    <div id="feedView" class="space-y-4">
+
+      <!-- Filter by stamp: shows lies where that stamp leads the count -->
+      <div id="filters" class="grid gap-1" style="grid-template-columns:repeat(7,1fr);" role="group" aria-label="Filter by stamp"></div>
+
+      <!-- Worst-lie hero: real votes only, never seeded -->
+      <button id="worst" class="hidden w-full text-left slip overflow-hidden">
+        <div class="flex items-center justify-between px-3 py-2 slip-head">
+          <span id="worstLabel" class="mono text-xs" style="color:var(--pencil-soft);">WORST LIE GOING ROUND</span>
+          <span id="worstTime" class="mono text-xs" style="color:var(--pencil-soft);"></span>
+        </div>
+        <div class="relative">
+          <img id="worstImg" class="w-full aspect-[16/7] object-cover block" alt="The worst lie on the feed" loading="lazy" />
+          <span id="worstStamp" class="stamp absolute bottom-2 left-3 text-base" style="background:rgba(255,255,255,.85);"></span>
+          <span class="mono absolute bottom-2 right-3 text-[11px] px-2 py-1 rounded" style="background:rgba(255,255,255,.85);color:var(--pencil-soft);" id="worstTally"></span>
+        </div>
+      </button>
+
+      <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
+      <div id="empty" class="hidden text-center py-12">
+        <p class="display font-display text-2xl uppercase" style="color:var(--fairway);">Nothing here yet</p>
+        <p id="emptyHint" class="mt-2 text-sm" style="color:var(--pencil-soft);">Be the first — snap a lie and post the ruling.</p>
+        <button data-snap class="mt-4 inline-block bg-turf text-chalk font-display font-semibold text-lg rounded-lg px-5 py-2.5">Snap a lie</button>
+      </div>
+      <div id="list" class="space-y-4"></div>
+    </div>
+
+    <!-- ============ SNAP VIEW (capture + result) ============ -->
+    <div id="snapView" class="hidden space-y-5">
+      <button id="backToFeed" class="mono text-xs underline underline-offset-4 min-h-[44px]" style="color:var(--pencil-soft);">&larr; Back to the feed</button>
+
+      <!-- Capture card: they tapped Snap, so get straight to the two choices -->
+      <section class="bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
+        <div class="slip-head flex items-center justify-center px-3 py-2">
+          <span class="font-mono text-[11px] tracking-wide" style="color:#65706A;">01 SNAP &nbsp;·&nbsp; 02 RATE &nbsp;·&nbsp; 03 SHARE</span>
         </div>
         <img id="preview" class="hidden w-full aspect-[4/3] object-cover" alt="Your lie" />
-      </label>
-      <input id="photo" type="file" accept="image/*" class="hidden" />
-      <div class="px-4 pt-4 grid grid-cols-2 gap-2">
-        <button id="takeBtn" type="button" class="bg-turf/10 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">Take photo</button>
-        <button id="chooseBtn" type="button" class="bg-turf/10 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">Choose photo</button>
-      </div>
+        <input id="photo" type="file" accept="image/*" class="hidden" />
+        <div id="captureBtns" class="px-4 pt-4 grid grid-cols-2 gap-2">
+          <button id="takeBtn" type="button"
+            class="ruled bg-turf/5 border border-turf/15 text-turf font-display font-semibold text-xl rounded-xl py-6 flex flex-col items-center gap-2 active:scale-[.99] transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>
+            Take photo
+          </button>
+          <button id="chooseBtn" type="button"
+            class="ruled bg-turf/5 border border-turf/15 text-turf font-display font-semibold text-xl rounded-xl py-6 flex flex-col items-center gap-2 active:scale-[.99] transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5L6 23"/></svg>
+            Choose photo
+          </button>
+        </div>
 
-      <div class="p-4 space-y-3">
-        <input id="note" type="text" maxlength="140"
-          placeholder="Add a note (optional) — e.g. up against a sprinkler head"
-          class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
-        <button id="submit"
-          class="w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition disabled:opacity-50">
-          Get the ruling
-        </button>
-      </div>
-    </section>
+        <div class="p-4 space-y-3">
+          <input id="note" type="text" maxlength="140"
+            placeholder="Add a note (optional) — e.g. up against a sprinkler head"
+            class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
 
-    <!-- Result card -->
-    <section id="result" class="hidden bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
-      <div class="flex">
-        <div id="stake" class="w-2 shrink-0"></div>
-        <div class="p-5 flex-1">
-          <div id="rulingType" class="font-display font-semibold uppercase tracking-widest text-xs"></div>
-          <h2 id="verdict" class="font-display font-bold text-3xl leading-tight mt-1"></h2>
-          <p id="situation" class="text-sm text-ink/60 mt-1"></p>
-          <p id="explanation" class="text-[15px] mt-3 leading-relaxed"></p>
-
-          <a id="ruleLink" href="#" target="_blank" rel="noopener"
-            class="hidden mt-4 items-center gap-1.5 text-fairway font-semibold text-sm">
-            <span id="ruleLabel"></span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
-          </a>
-
-          <div id="confidenceRow" class="mt-4 flex items-center gap-2 text-xs text-ink/45">
-            <span id="confidence"></span>
+          <!-- Optional round details: course, hole, date -->
+          <button id="detailsToggle" type="button" aria-expanded="false"
+            class="mono text-xs underline underline-offset-4 min-h-[44px]" style="color:#65706A;">
+            + Add course, hole &amp; date (optional)
+          </button>
+          <div id="details" class="hidden grid grid-cols-2 gap-2">
+            <input id="course" type="text" maxlength="60" placeholder="Course — e.g. Woodlands GC"
+              class="col-span-2 w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+            <input id="playedOn" type="date"
+              class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+            <!-- Hole stepper: wraps both ways, 18 -> 1 and 1 -> 18 -->
+            <div class="flex items-stretch gap-1">
+              <button id="holeDown" type="button" aria-label="Previous hole"
+                class="min-w-[44px] rounded-lg border border-ink/15 bg-paper/60 text-turf font-display text-xl active:scale-95 transition">&minus;</button>
+              <input id="hole" type="number" min="1" max="36" inputmode="numeric" placeholder="Hole"
+                class="w-full min-w-0 text-center rounded-lg border border-ink/15 bg-paper/60 px-1 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+              <button id="holeUp" type="button" aria-label="Next hole"
+                class="min-w-[44px] rounded-lg border border-ink/15 bg-paper/60 text-turf font-display text-xl active:scale-95 transition">+</button>
+            </div>
           </div>
 
-          <!-- Low-confidence describe-instead path -->
-          <div id="describe" class="hidden mt-4 pt-4 border-t border-ink/10">
-            <input id="describeNote" type="text" maxlength="140"
-              placeholder="Describe the lie in a sentence"
-              class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
-            <button id="describeSubmit"
-              class="mt-2 w-full bg-ink/90 text-chalk font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">
-              Ask again
+          <button id="submit"
+            class="w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition disabled:opacity-50">
+            Get the ruling
+          </button>
+        </div>
+      </section>
+
+      <!-- Result card -->
+      <section id="result" class="hidden bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
+        <div class="flex">
+          <div id="stake" class="w-2 shrink-0"></div>
+          <div class="p-5 flex-1">
+            <div id="rulingType" class="font-display font-semibold uppercase tracking-widest text-xs"></div>
+            <h2 id="verdict" class="stamp text-2xl mt-3"></h2>
+            <p id="situation" class="text-sm text-ink/60 mt-1"></p>
+            <p id="explanation" class="text-[15px] mt-3 leading-relaxed"></p>
+
+            <a id="ruleLink" href="#" target="_blank" rel="noopener"
+              class="hidden mt-4 items-center gap-1.5 text-fairway font-semibold text-sm">
+              <span id="ruleLabel"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </a>
+
+            <!-- Stamp your own lie: suggestion is dashed until you confirm it -->
+            <div id="stampRow" class="hidden mt-4 pt-4 border-t border-ink/10">
+              <div class="flex items-center gap-2">
+                <div class="flex flex-col gap-1">
+                  <button id="stampBtn" class="vote" aria-pressed="false"></button>
+                  <span id="stampNote" class="suggest-note">Rate the ruling</span>
+                </div>
+                <button id="stampMore" class="more" aria-expanded="false" aria-label="Choose a different stamp">⋯</button>
+              </div>
+              <div id="stampTray" class="picker" hidden></div>
+            </div>
+
+            <div id="confidenceRow" class="mt-4 flex items-center gap-2 text-xs text-ink/45">
+              <span id="confidence"></span>
+            </div>
+
+            <a id="reportLink" href="/feedback"
+              class="hidden mt-2 font-mono text-xs underline underline-offset-4 min-h-[44px] items-center" style="color:#65706A;">
+              Ruling look wrong? Report it
+            </a>
+
+            <button id="postBtn" type="button"
+              class="hidden mt-4 w-full items-center justify-center gap-2 border border-turf/20 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">
+              Post to the feed
             </button>
+
+            <button id="shareBtn" type="button"
+              class="hidden mt-2 w-full items-center justify-center gap-2 text-turf/70 hover:text-turf font-display font-semibold text-base py-1.5 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
+              Share
+            </button>
+
+            <!-- Low-confidence describe-instead path -->
+            <div id="describe" class="hidden mt-4 pt-4 border-t border-ink/10">
+              <input id="describeNote" type="text" maxlength="140"
+                placeholder="Describe the lie in a sentence"
+                class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
+              <button id="describeSubmit"
+                class="mt-2 w-full bg-ink/90 text-chalk font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">
+                Ask again
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-<p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
-      Always check the official rule. Unplayable settles the banter — it is not the match committee.
-    </p>
-    <p class="text-center text-xs mt-1">
-      <a href="/about" class="text-fairway font-semibold">About Unplayable</a>
-    </p>
+      <p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
+        Always check the official rule. Unplayable settles the banter — it is not the match committee.
+      </p>
+    </div>
   </main>
+
+  <!-- Bottom bar with the Snap button, Snap Send Solve style -->
+  <div id="bottomBar" class="hidden fixed bottom-0 inset-x-0 z-30">
+    <div class="max-w-md mx-auto relative">
+      <button id="fab" aria-label="Snap a lie"
+        class="absolute left-1/2 -translate-x-1/2 -top-7 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition"
+        style="background:var(--fairway);color:var(--card);border:3px solid var(--card);box-shadow:0 8px 20px -6px rgba(23,128,184,.55);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
+        </svg>
+      </button>
+      <div class="flex items-end justify-between px-12 pt-3 pb-3" style="background:var(--card);border-top:1px solid var(--rule);">
+        <button id="navFeed" class="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center font-display font-semibold uppercase text-[11px] tracking-wide" style="color:var(--fairway);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/></svg>
+          Feed
+        </button>
+        <span class="font-display font-semibold uppercase text-[11px] tracking-wide pb-0.5" style="color:var(--fairway);">Snap</span>
+        <a href="/about" class="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center font-display font-semibold uppercase text-[11px] tracking-wide" style="color:var(--pencil-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>
+          About
+        </a>
+      </div>
+    </div>
+  </div>
 
 <script>
   const STAKE = {
-    free_relief:   { bar: "#2f7d4f", label: "Free relief", type: "text-fairway" },
-    penalty:       { bar: "#c0392b", label: "Penalty",     type: "text-stakeRed" },
-    play_as_it_lies:{ bar: "#1c1b17", label: "Play it as it lies", type: "text-ink" },
-    unclear:       { bar: "#e0a200", label: "Need a closer look", type: "text-stakeYellow" },
+    free_relief:   { bar: "#0FA958", label: "Free relief", type: "text-fairway", stamp: "stamp-green" },
+    penalty:       { bar: "#E03131", label: "Penalty",     type: "text-stakeRed", stamp: "stamp-red" },
+    play_as_it_lies:{ bar: "#1B2420", label: "Play it as it lies", type: "text-ink", stamp: "stamp-red" },
+    unclear:       { bar: "#F5A623", label: "Need a closer look", type: "text-stakeYellow", stamp: "stamp-flag" },
   };
+  const VERDICT_TONE = {
+    free_relief: "stamp-green", penalty: "stamp-red",
+    play_as_it_lies: "stamp-red", unclear: "stamp-neutral",
+  };
+
+  // The six stamps, lucky to cursed. Keys mirror the backend enum exactly.
+  // Icons: horseshoe luck at one end, skull at the other.
+  const ICON = (d) => `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const STAMPS = {
+    gift:     { label: "Gift",     tone: "tone-green",  ink: "#0FA958",
+                icon: ICON('<rect x="5" y="10" width="14" height="10" rx="1"/><path d="M5 13h14M12 10v10M8 10C6 8 6.5 5 9 5.5c2 .4 3 2.5 3 4.5 0-2 1-4.1 3-4.5 2.5-.5 3 2.5 1 4.5"/>') },
+    fluke:    { label: "Fluke",    tone: "tone-green",  ink: "#0FA958",
+                icon: ICON('<path d="M6 20v-7a6 6 0 0 1 12 0v7"/><path d="M4.5 17H8M16 17h3.5"/>') },
+    fair_cop: { label: "Fair cop", tone: "tone-neutral", ink: "#C28400",
+                icon: ICON('<path d="M12 4v15M6 19h12M4 7h16"/><path d="M7 7l-2.5 5h5zM17 7l-2.5 5h5z"/>') },
+    stiff:    { label: "Stiff",    tone: "tone-neutral", ink: "#C28400",
+                icon: ICON('<path d="M4 7c6-2.5 12-2.5 16 1.5"/><circle cx="12" cy="15.5" r="4"/>') },
+    cooked:   { label: "Cooked",   tone: "tone-red",    ink: "#E03131",
+                icon: ICON('<circle cx="10" cy="14" r="6"/><path d="M14.5 9.5L21 3.5"/>') },
+    brutal:   { label: "Brutal",   tone: "tone-red",    ink: "#E03131",
+                icon: ICON('<path d="M5 10a7 7 0 0 1 14 0c0 2.7-1.3 4.2-2.5 5.3V20h-9v-4.7C6.3 14.2 5 12.7 5 10z"/><circle cx="9.5" cy="10" r="1.1" fill="currentColor"/><circle cx="14.5" cy="10" r="1.1" fill="currentColor"/>') },
+  };
+  const STAMP_KEYS = Object.keys(STAMPS);
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (id) => document.getElementById(id);
 
   // Anonymous session id, no login.
   let sessionId = localStorage.getItem("unplayable_session");
   if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem("unplayable_session", sessionId); }
 
-  const $ = (id) => document.getElementById(id);
   let currentBlob = null;
+  let lastResult = null;
+  let currentTab = "latest";
 
-  $("takeBtn").addEventListener("click", () => { $("photo").setAttribute("capture","environment"); $("photo").click(); });
-  $("chooseBtn").addEventListener("click", () => { $("photo").removeAttribute("capture"); $("photo").click(); });
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function accessHeaders() {
+    const headers = {};
+    const code = localStorage.getItem("unplayable_access");
+    if (code) headers["X-Access-Code"] = code;
+    return headers;
+  }
+
+  // ============ Views ============
+  function showSnap() {
+    $("feedView").classList.add("hidden");
+    $("snapView").classList.remove("hidden");
+    $("tabs").classList.add("hidden");
+    window.scrollTo({ top: 0 });
+  }
+  function showFeed(refresh) {
+    $("snapView").classList.add("hidden");
+    $("feedView").classList.remove("hidden");
+    $("tabs").classList.remove("hidden");
+    if (refresh) { loadFeed(); loadWorst(true); }
+    window.scrollTo({ top: 0 });
+  }
+  $("fab").addEventListener("click", showSnap);
+  $("backToFeed").addEventListener("click", () => showFeed(false));
+  $("navFeed").addEventListener("click", () => showFeed(false));
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-snap]")) showSnap();
+  });
+
+  // ============ Feed ============
+  function relTime(iso) {
+    const t = new Date(iso);
+    if (isNaN(t)) return "";
+    const mins = Math.max(0, Math.round((Date.now() - t.getTime()) / 60000));
+    if (mins < 60) return mins + "M AGO";
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + "H AGO";
+    const days = Math.round(hrs / 24);
+    if (days < 7) return days + "D AGO";
+    return t.toLocaleDateString("en-AU", { day: "numeric", month: "short" }).toUpperCase();
+  }
+
+  function card(item) {
+    const el = document.createElement("article");
+    el.className = "slip overflow-hidden";
+    const suggestedKey = STAMPS[item.suggested_stamp] ? item.suggested_stamp : "fair_cop";
+    const myKey = STAMPS[item.my_stamp] ? item.my_stamp : null;
+    const counts = item.stamp_counts || {};
+    const vTone = VERDICT_TONE[item.ruling_type] || "stamp-neutral";
+    // Slip head: "HOLE 7 · WOODLANDS GC" when the golfer told us.
+    const place = [
+      item.hole ? "HOLE " + esc(item.hole) : null,
+      item.course ? esc(item.course).toUpperCase() : null,
+    ].filter(Boolean).join(" · ");
+    const headLeft = place || "THE LIE";
+    // Rule reference: server guarantees rule_url is a randa.org link.
+    const ruleLink = (item.rule_number && item.rule_url)
+      ? `<a href="${esc(item.rule_url)}" target="_blank" rel="noopener"
+           class="mono text-xs underline underline-offset-4 min-h-[44px] inline-flex items-center"
+           style="color:var(--ink-green);">R&amp;A Rule ${esc(item.rule_number)} ↗</a>`
+      : `<span class="suggest-note">Rate the ruling</span>`;
+
+    const img = item.image_path
+      ? `<img src="${esc(item.image_path)}" class="w-full aspect-[4/3] object-cover block" alt="The lie" loading="lazy" />`
+      : `<div class="w-full aspect-[4/3]" style="background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(150,165,178,.25) 6px 7px),var(--card);"></div>`;
+
+    el.innerHTML = `
+      <div class="slip-head flex items-center justify-between px-3 py-2">
+        <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
+        <span class="mono text-xs" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
+      </div>
+      <div class="relative">
+        ${img}
+        <span class="stamp ${vTone} absolute top-3 left-3 text-lg" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
+        <div class="chips" role="group" aria-label="Stamp this lie">
+          ${STAMP_KEYS.map((k) =>
+            `<button class="chip ${STAMPS[k].tone}" data-chip="${k}" aria-pressed="false"><span class="row">${STAMPS[k].icon}<span class="q">?</span><span class="n" data-n="${k}"></span></span><span class="lbl">${STAMPS[k].label}</span></button>`
+          ).join("")}
+        </div>
+      </div>
+      <div class="px-3 pt-3 pb-1">
+        <p class="text-[15px] leading-snug">${esc(item.explanation || item.situation || "")}</p>
+      </div>
+      <div class="px-3 pt-1 pb-2 flex items-center justify-between" data-votes>
+        ${ruleLink}
+        <button class="mono text-xs underline underline-offset-4 min-h-[44px] px-2" data-share style="color:var(--pencil-soft);">Share</button>
+      </div>`;
+
+    wireVotes(el, item, suggestedKey, myKey, counts);
+    el.querySelector("[data-share]").addEventListener("click", () => shareLie(item));
+    return el;
+  }
+
+  function wireVotes(el, item, suggestedKey, myKey, counts) {
+    const chips = el.querySelectorAll("[data-chip]");
+    const tallies = { ...counts };
+    let choice = myKey; // the caller's current stamp, or null
+
+    const render = () => {
+      const total = STAMP_KEYS.reduce((sum, k) => sum + (tallies[k] || 0), 0);
+      chips.forEach((c) => {
+        const k = c.dataset.chip;
+        const n = tallies[k] || 0;
+        c.querySelector(".n").textContent = n > 0 ? n : "";
+        c.setAttribute("aria-label",
+          STAMPS[k].label + (n > 0 ? ", " + n + " of " + total + " stamps" : ""));
+        c.classList.toggle("stamped", choice === k);
+        c.setAttribute("aria-pressed", String(choice === k));
+        // The app's pick stays dashed with a "?" until a human stamps.
+        c.classList.toggle("suggested", !choice && k === suggestedKey);
+      });
+    };
+
+    const sync = async (stamp) => {
+      const fd = new FormData();
+      fd.append("submission_id", item.id);
+      fd.append("stamp", stamp);
+      fd.append("session_id", sessionId);
+      const r = await fetch("/api/vote", { method: "POST", body: fd, headers: accessHeaders() });
+      if (r.status === 401) {
+        alert("Enter the access code first, then come back to stamp.");
+        return false;
+      }
+      return r.ok;
+    };
+
+    const apply = (key, chipEl) => {
+      const prev = choice;
+      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
+      choice = key;
+      tallies[key] = (tallies[key] || 0) + 1;
+      render();
+      if (!reduced && chipEl) {
+        chipEl.classList.remove("just-stamped"); void chipEl.offsetWidth;
+        chipEl.classList.add("just-stamped");
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
+      sync(key).then((ok) => { if (!ok) {
+        tallies[key] = Math.max(0, (tallies[key] || 0) - 1);
+        choice = prev;
+        if (prev) tallies[prev] = (tallies[prev] || 0) + 1;
+        render();
+      }});
+    };
+
+    const clear = () => {
+      const prev = choice;
+      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
+      choice = null;
+      render();
+      sync("clear").then((ok) => { if (!ok && prev) {
+        choice = prev; tallies[prev] = (tallies[prev] || 0) + 1;
+        render();
+      }});
+    };
+
+    chips.forEach((c) => {
+      c.addEventListener("click", () => {
+        const k = c.dataset.chip;
+        choice === k ? clear() : apply(k, c);
+      });
+    });
+
+    render();
+  }
+
+  async function shareLie(item) {
+    const url = location.origin + "/r/" + item.id;
+    const text = (item.verdict || "A golf ruling")
+      + (item.rule_number ? " — Rule " + item.rule_number : "");
+    try {
+      if (navigator.share) await navigator.share({ title: "Unplayable", text, url });
+      else { await navigator.clipboard.writeText(url); alert("Link copied."); }
+    } catch (e) { /* dismissed */ }
+  }
+
+  // --- Stamp filter: shows lies where the chosen stamp leads the count ---
+  let currentFilter = "";
+  let feedItems = [];
+
+  function leadingStamp(item) {
+    const counts = item.stamp_counts || {};
+    let best = null, bestN = 0;
+    STAMP_KEYS.forEach((k) => {
+      const n = counts[k] || 0;
+      if (n > bestN) { best = k; bestN = n; }
+    });
+    return best; // null when unstamped
+  }
+
+  function buildFilters() {
+    const bar = $("filters");
+    const mk = (key, label, icon, tone) => {
+      const b = document.createElement("button");
+      b.className = "chip " + tone;
+      b.dataset.filter = key;
+      b.innerHTML = (icon ? '<span class="row">' + icon + "</span>" : "")
+        + '<span class="lbl">' + label + "</span>";
+      b.addEventListener("click", () => {
+        currentFilter = currentFilter === key ? "" : key; // tap again to clear
+        bar.querySelectorAll(".chip").forEach((c) =>
+          c.classList.toggle("stamped", c.dataset.filter === currentFilter));
+        renderFeed();
+      });
+      bar.appendChild(b);
+    };
+    mk("", "All", "", "tone-ink");
+    STAMP_KEYS.forEach((k) => mk(k, STAMPS[k].label, STAMPS[k].icon, STAMPS[k].tone));
+    bar.querySelector('[data-filter=""]').classList.add("stamped");
+  }
+  buildFilters();
+
+  function renderFeed() {
+    const list = $("list");
+    list.innerHTML = "";
+    $("empty").classList.add("hidden");
+    const items = currentFilter
+      ? feedItems.filter((i) => leadingStamp(i) === currentFilter)
+      : feedItems;
+    if (!items.length) {
+      $("emptyHint").textContent = currentFilter
+        ? "No lies where " + STAMPS[currentFilter].label + " leads — yet."
+        : (currentTab === "mine"
+            ? "No lies of yours yet — snap one and post the ruling."
+            : "Be the first — snap a lie and post the ruling.");
+      $("empty").classList.remove("hidden");
+      return;
+    }
+    items.forEach((item) => list.appendChild(card(item)));
+  }
+
+  async function loadFeed() {
+    $("loading").classList.remove("hidden");
+    $("empty").classList.add("hidden");
+    $("list").innerHTML = "";
+    try {
+      const params = new URLSearchParams({ session_id: sessionId });
+      if (currentTab === "worst") params.set("sort", "worst");
+      if (currentTab === "mine") params.set("mine", "1");
+      const r = await fetch("/api/feed?" + params.toString());
+      feedItems = await r.json();
+      $("loading").classList.add("hidden");
+      renderFeed();
+    } catch (e) {
+      $("loading").textContent = "Could not load the feed. Try again shortly.";
+    }
+  }
+
+  document.querySelectorAll("[data-tab]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentTab = tab.dataset.tab;
+      document.querySelectorAll("[data-tab]").forEach((t) =>
+        t.setAttribute("aria-selected", String(t === tab)));
+      showFeed(false);
+      loadFeed();
+    });
+  });
+
+  // --- Worst-lie hero ---
+  // Honesty rule: only ever a real post with real stamps. No votes -> no hero.
+  let worstLoaded = false;
+  async function loadWorst(force) {
+    if (worstLoaded && !force) return;
+    worstLoaded = true;
+    try {
+      const r = await fetch("/api/feed?sort=worst");
+      const items = await r.json();
+      const top = items.find((i) => (i.worst_score || 0) > 0 && i.image_path);
+      if (!top) { $("worst").classList.add("hidden"); return; }
+      const ageH = (Date.now() - new Date(top.created_at).getTime()) / 36e5;
+      $("worstLabel").textContent = ageH <= 48 ? "YESTERDAY'S WORST LIE" : "WORST LIE GOING ROUND";
+      $("worstTime").textContent = ageH < 1 ? "JUST IN"
+        : ageH < 24 ? Math.round(ageH) + "H AGO"
+        : Math.round(ageH / 24) + "D AGO";
+      $("worstImg").src = top.image_path;
+      const stake = STAKE[top.ruling_type] || STAKE.unclear;
+      $("worstStamp").textContent = top.verdict || stake.label;
+      $("worstStamp").className = "stamp absolute bottom-2 left-3 text-base " + stake.stamp;
+      const tally = Object.entries(top.stamp_counts || {})
+        .filter(([, n]) => n > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([k, n]) => (STAMPS[k] ? STAMPS[k].label.toUpperCase() : k.toUpperCase()) + " ×" + n)
+        .join(" · ");
+      $("worstTally").textContent = tally;
+      $("worst").classList.remove("hidden");
+    } catch (e) { /* hero is optional; never block the feed */ }
+  }
+  $("worst").addEventListener("click", () => {
+    currentTab = "worst";
+    document.querySelectorAll("[data-tab]").forEach((t) =>
+      t.setAttribute("aria-selected", String(t.dataset.tab === "worst")));
+    loadFeed();
+  });
+
+  // ============ Capture ============
+  // Two buttons, one hidden input: toggle 'capture' so Android reliably offers both.
+  $("takeBtn").addEventListener("click", () => {
+    $("photo").setAttribute("capture", "environment");  // open the camera directly
+    $("photo").click();
+  });
+  $("chooseBtn").addEventListener("click", () => {
+    $("photo").removeAttribute("capture");              // open the photo library/files
+    $("photo").click();
+  });
 
   $("photo").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -140,7 +741,6 @@
     const url = URL.createObjectURL(currentBlob);
     $("preview").src = url;
     $("preview").classList.remove("hidden");
-    $("dropzone").classList.add("hidden");
   });
 
   // Resize to a 1024px long edge and re-encode as JPEG so uploads stay fast on patchy data.
@@ -156,12 +756,44 @@
     return await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.72));
   }
 
+  // Hole stepper wraps around the course: 18 steps forward to 1, 1 back to 18.
+  function stepHole(dir) {
+    const el = $("hole");
+    let v = parseInt(el.value, 10);
+    if (isNaN(v)) v = dir > 0 ? 1 : 18;
+    else {
+      v += dir;
+      if (v < 1) v = 18;
+      else if (v > 18) v = 1;
+    }
+    el.value = v;
+  }
+  $("holeDown").addEventListener("click", () => stepHole(-1));
+  $("holeUp").addEventListener("click", () => stepHole(1));
+
+  // Round-details expander: prefill today's date the first time it opens.
+  $("detailsToggle").addEventListener("click", () => {
+    const open = $("details").classList.toggle("hidden");
+    $("detailsToggle").setAttribute("aria-expanded", String(!open));
+    if (!open && !$("playedOn").value) {
+      $("playedOn").value = new Date().toISOString().slice(0, 10);
+    }
+  });
+
   async function requestRuling({ blob, note }) {
     const fd = new FormData();
     if (blob) fd.append("photo", blob, "lie.jpg");
     fd.append("note", note || "");
     fd.append("session_id", sessionId);
-    const r = await fetch("/api/ruling", { method: "POST", body: fd });
+    fd.append("course", $("course").value.trim());
+    fd.append("hole", $("hole").value.trim());
+    fd.append("played_on", $("playedOn").value);
+    const r = await fetch("/api/ruling", { method: "POST", body: fd, headers: accessHeaders() });
+    if (r.status === 401) {
+      localStorage.removeItem("unplayable_access");
+      showGate(true);
+      throw new Error("Access code needed. Please enter it again.");
+    }
     if (!r.ok) {
       const err = await r.json().catch(() => ({}));
       throw new Error(err.error || "Something went wrong. Try again.");
@@ -169,13 +801,102 @@
     return await r.json();
   }
 
+  // ============ Result-page stamp control ============
+  let suggestedKey = "fair_cop";
+  let myStamp = null; // the golfer's confirmed stamp — the only one that goes on the share image
+
+  function renderStampBtn() {
+    const btn = $("stampBtn");
+    btn.classList.remove("stamped", "tone-green", "tone-neutral", "tone-red");
+    if (myStamp) {
+      btn.textContent = STAMPS[myStamp].label;
+      btn.classList.add("stamped", STAMPS[myStamp].tone);
+      btn.setAttribute("aria-pressed", "true");
+      $("stampNote").textContent = "Tap to un-stamp";
+    } else {
+      btn.textContent = STAMPS[suggestedKey].label + "?";
+      btn.classList.add(STAMPS[suggestedKey].tone);
+      btn.setAttribute("aria-pressed", "false");
+      $("stampNote").textContent = "Rate the ruling";
+    }
+  }
+
+  async function syncStamp(stamp) {
+    if (!lastResult || !lastResult.id) return false;
+    const fd = new FormData();
+    fd.append("submission_id", lastResult.id);
+    fd.append("stamp", stamp);
+    fd.append("session_id", sessionId);
+    try {
+      const r = await fetch("/api/vote", { method: "POST", body: fd, headers: accessHeaders() });
+      return r.ok;
+    } catch (e) { return false; }
+  }
+
+  function applyStamp(key) {
+    const prev = myStamp;
+    myStamp = key;
+    renderStampBtn();
+    const btn = $("stampBtn");
+    if (!reduced) {
+      btn.classList.remove("just-stamped"); void btn.offsetWidth;
+      btn.classList.add("just-stamped");
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+    syncStamp(key).then((ok) => { if (!ok) { myStamp = prev; renderStampBtn(); } });
+  }
+
+  function clearStamp() {
+    const prev = myStamp;
+    myStamp = null;
+    renderStampBtn();
+    syncStamp("clear").then((ok) => { if (!ok) { myStamp = prev; renderStampBtn(); } });
+  }
+
+  $("stampBtn").addEventListener("click", () => { myStamp ? clearStamp() : applyStamp(suggestedKey); });
+  $("stampMore").addEventListener("click", () => {
+    const tray = $("stampTray");
+    const open = !tray.hidden;
+    tray.hidden = open;
+    $("stampMore").setAttribute("aria-expanded", String(!open));
+  });
+  // Build the tray once.
+  Object.entries(STAMPS).forEach(([key, s]) => {
+    const b = document.createElement("button");
+    b.className = "pick " + s.tone;
+    b.innerHTML = s.icon + " " + esc(s.label);
+    b.addEventListener("click", () => {
+      applyStamp(key);
+      $("stampTray").hidden = true;
+      $("stampMore").setAttribute("aria-expanded", "false");
+    });
+    $("stampTray").appendChild(b);
+  });
+
+  // ============ Result render ============
   function render(data) {
     const offTopic = data.on_topic === false;
+    lastResult = data;
+    // Only stored, on-topic rulings can be shared (they have an id and a public page).
+    $("shareBtn").classList.toggle("hidden", offTopic || !data.id);
+    $("shareBtn").classList.toggle("flex", !offTopic && !!data.id);
+    $("postBtn").classList.toggle("hidden", offTopic || !data.id);
+    $("postBtn").classList.toggle("flex", !offTopic && !!data.id);
+    $("postBtn").textContent = "Post to the feed";
+    $("postBtn").disabled = false;
+    // Stamp control: fresh suggestion per ruling, nothing confirmed yet.
+    suggestedKey = STAMPS[data.suggested_stamp] ? data.suggested_stamp : "fair_cop";
+    myStamp = null;
+    $("stampRow").classList.toggle("hidden", offTopic || !data.id);
+    $("stampTray").hidden = true;
+    $("stampMore").setAttribute("aria-expanded", "false");
+    renderStampBtn();
     const stake = offTopic ? STAKE.unclear : (STAKE[data.ruling_type] || STAKE.unclear);
     $("stake").style.backgroundColor = stake.bar;
     $("rulingType").textContent = offTopic ? "Not a golf lie" : stake.label;
     $("rulingType").className = "font-display font-semibold uppercase tracking-widest text-xs " + stake.type;
     $("verdict").textContent = data.verdict || "—";
+    $("verdict").className = "stamp text-2xl mt-3 " + (offTopic ? "stamp-neutral" : stake.stamp);
     $("situation").textContent = offTopic ? "" : (data.situation || "");
     $("explanation").textContent = data.explanation || "";
 
@@ -187,6 +908,11 @@
     } else {
       $("ruleLink").classList.add("hidden");
     }
+
+    // Wrong-call reports link straight to the feedback form with the ruling attached.
+    $("reportLink").classList.toggle("hidden", !data.id);
+    $("reportLink").classList.toggle("inline-flex", !!data.id);
+    if (data.id) $("reportLink").href = "/feedback?ruling=" + encodeURIComponent(data.id);
 
     // No confidence line or retry box on a refusal — do not invite repeated abuse.
     if (offTopic) {
@@ -231,6 +957,260 @@
     if (!note) { alert("Describe the lie first."); return; }
     run({ blob: null, note }, $("describeSubmit"));
   });
+
+  // ============ Share image ============
+  function loadImg(src) {
+    return new Promise((res, rej) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
+    });
+  }
+
+  function drawCover(ctx, img, x, y, w, h) {
+    const r = Math.max(w / img.width, h / img.height);
+    const iw = img.width * r, ih = img.height * r;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+    ctx.restore();
+  }
+
+  function wrapText(ctx, text, maxW, maxLines) {
+    const words = (text || "").split(" ");
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+      if (lines.length === maxLines - 1 && ctx.measureText(line + "…").width > maxW) break;
+    }
+    if (line) lines.push(line);
+    return lines.slice(0, maxLines);
+  }
+
+  async function getPhoto(data) {
+    try {
+      const pv = $("preview");
+      if (pv.src && !pv.classList.contains("hidden")) return await loadImg(pv.src);
+      if (data.image_path) return await loadImg(data.image_path);
+    } catch (e) { /* no usable photo */ }
+    return null;
+  }
+
+  // One rubber stamp, drawn like ink: double-pass stroke for bleed, optional
+  // card-paper backing so it stays legible over a photo.
+  function inkStamp(x, label, ink, cx, cy, deg, size, backing) {
+    x.save();
+    x.font = "700 " + size + "px 'Oswald', sans-serif";
+    const padX = size * 0.45;
+    const w = x.measureText(label).width + padX * 2;
+    const h = size * 1.55;
+    x.translate(cx, cy);
+    x.rotate(deg * Math.PI / 180);
+    if (backing) {
+      x.fillStyle = backing;
+      x.fillRect(-w / 2 - 12, -h / 2 - 12, w + 24, h + 24);
+    }
+    x.strokeStyle = ink; x.lineWidth = Math.max(6, size * 0.11);
+    x.strokeRect(-w / 2, -h / 2, w, h);
+    x.globalAlpha = 0.35;                              // ink-bleed second pass
+    x.strokeRect(-w / 2 + 3, -h / 2 + 2, w, h);
+    x.globalAlpha = 1;
+    x.fillStyle = ink; x.textAlign = "center"; x.textBaseline = "middle";
+    x.fillText(label, 0, size * 0.07);
+    x.restore();
+    return { w, h };
+  }
+
+  function fitStampSize(x, label, maxW, start) {
+    let size = start;
+    x.font = "700 " + size + "px 'Oswald', sans-serif";
+    while (size > 40 && x.measureText(label).width + size * 0.9 > maxW) {
+      size -= 4;
+      x.font = "700 " + size + "px 'Oswald', sans-serif";
+    }
+    return size;
+  }
+
+  async function buildShareImage(data) {
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    const W = 1080, H = 1350, P = 64;
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const x = cv.getContext("2d");
+
+    // Scorecard paper with faint pencil ruling, then the fairway header band.
+    x.fillStyle = "#F4F8FB"; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(150,165,178,.45)"; x.lineWidth = 1;
+    for (let ly = 190; ly < H - 160; ly += 44) {
+      x.beginPath(); x.moveTo(0, ly); x.lineTo(W, ly); x.stroke();
+    }
+    x.fillStyle = "#29ABE2"; x.fillRect(0, 0, W, 150);
+    x.fillStyle = "#FFFFFF";
+    x.font = "700 66px 'Oswald', sans-serif";
+    x.textAlign = "left"; x.textBaseline = "middle";
+    x.fillText("UNPLAYABLE", P, 80);
+    x.fillStyle = "#D6EFFB"; x.font = "500 24px 'IBM Plex Mono', monospace";
+    x.textAlign = "right";
+    x.fillText("A GUIDE, NOT THE MATCH COMMITTEE", W - P, 82);
+    x.textAlign = "left";
+
+    const photo = await getPhoto(data);
+    if (photo) drawCover(x, photo, 0, 150, W, 720);
+
+    // Verdict stamp straddles the photo's bottom edge — stamped onto the slip,
+    // not laid out like a heading.
+    let verdict = (data.verdict || "RULING").toUpperCase();
+    if (verdict.length > 30) verdict = verdict.slice(0, 29).trimEnd() + "…";
+    const ink = (STAKE[data.ruling_type] || STAKE.unclear).bar;
+    const vSize = fitStampSize(x, verdict, W - 2 * P, 88);
+    const vy = photo ? 870 : 300;
+    inkStamp(x, verdict, ink, W / 2, vy, -3.5, vSize, "rgba(255,255,255,.9)");
+
+    // The golfer's confirmed stamp (never the app's unconfirmed suggestion):
+    // slapped across the photo's top-right corner like a real rubber stamp.
+    if (myStamp) {
+      const s = STAMPS[myStamp];
+      const label = s.label.toUpperCase();
+      x.font = "700 54px 'Oswald', sans-serif";
+      const w = x.measureText(label).width + 50;
+      if (photo) inkStamp(x, label, s.ink, W - P - w / 2, 248, 6, 54, "rgba(255,255,255,.6)");
+      else inkStamp(x, label, s.ink, W - P - w / 2, H - 250, 6, 54, null);
+    }
+
+    // The cheeky one-liner is the shareable bit — give it room on the card.
+    x.textBaseline = "top";
+    let ty = vy + (vSize * 1.55) / 2 + 44;
+    if (data.explanation) {
+      x.fillStyle = "#1B2420"; x.font = "400 36px 'Karla', sans-serif";
+      for (const line of wrapText(x, data.explanation, W - 2 * P, 3)) {
+        x.fillText(line, P, ty); ty += 48;
+      }
+      ty += 14;
+    }
+    if (data.rule_number) {
+      x.fillStyle = "#0FA958"; x.font = "600 32px 'IBM Plex Mono', monospace";
+      x.fillText("R&A RULE " + data.rule_number + " · RULES OF GOLF", P, ty);
+    }
+
+    // Footer: dashed scorecard rule, then the pitch.
+    x.strokeStyle = "#DFE6EB"; x.lineWidth = 2; x.setLineDash([10, 8]);
+    x.beginPath(); x.moveTo(P, H - 150); x.lineTo(W - P, H - 150); x.stroke();
+    x.setLineDash([]);
+    x.fillStyle = "#1780B8"; x.font = "600 44px 'Oswald', sans-serif";
+    x.fillText("SNAP YOUR LIE. GET THE RULING.", P, H - 112);
+
+    return await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.9));
+  }
+
+  $("shareBtn").addEventListener("click", async () => {
+    if (!lastResult || !lastResult.id) return;
+    const btn = $("shareBtn");
+    btn.disabled = true;
+    try {
+      const blob = await buildShareImage(lastResult);
+      const file = new File([blob], "unplayable.jpg", { type: "image/jpeg" });
+      const url = location.origin + "/r/" + lastResult.id;
+      const text = (lastResult.verdict || "My golf ruling")
+        + (lastResult.rule_number ? " — Rule " + lastResult.rule_number : "");
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text, title: "Unplayable" });
+      } else if (navigator.share) {
+        await navigator.share({ text, url, title: "Unplayable" });
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "unplayable.jpg";
+        a.click();
+        alert("Image saved — post it to Instagram, TikTok or wherever you like.");
+      }
+    } catch (e) {
+      // user dismissed the sheet, or sharing failed — nothing to do
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Post the ruling to the public feed (opt-in), then land back on the feed.
+  $("postBtn").addEventListener("click", async () => {
+    if (!lastResult || !lastResult.id) return;
+    const btn = $("postBtn");
+    btn.disabled = true;
+    btn.textContent = "Posting…";
+    try {
+      const fd = new FormData();
+      fd.append("submission_id", lastResult.id);
+      const r = await fetch("/api/post-to-feed", { method: "POST", body: fd, headers: accessHeaders() });
+      if (r.status === 401) { btn.textContent = "Enter the access code first"; return; }
+      if (!r.ok) { btn.textContent = "Could not post — try again"; btn.disabled = false; return; }
+      btn.textContent = "Posted ✓ — off to the feed";
+      setTimeout(() => showFeed(true), 900);
+    } catch (e) {
+      btn.textContent = "Could not post — try again";
+      btn.disabled = false;
+    }
+  });
+
+  // ============ Access gate ============
+  function showGate(withError) {
+    $("gate").classList.remove("hidden");
+    $("app").classList.add("hidden");
+    $("bottomBar").classList.add("hidden");
+    $("gateError").classList.toggle("hidden", !withError);
+    $("gateCode").focus();
+  }
+  function showApp() {
+    $("gate").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    $("bottomBar").classList.remove("hidden");
+    loadFeed();
+    loadWorst(false);
+    if (location.hash === "#snap") showSnap();  // e.g. the About page's camera button
+  }
+
+  async function submitCode() {
+    const code = $("gateCode").value.trim();
+    if (!code) return;
+    const btn = $("gateSubmit");
+    btn.disabled = true;
+    try {
+      const fd = new FormData();
+      fd.append("code", code);
+      const r = await fetch("/api/verify-code", { method: "POST", body: fd });
+      const data = await r.json();
+      if (data.ok) {
+        localStorage.setItem("unplayable_access", code);
+        showApp();
+      } else {
+        showGate(true);
+      }
+    } catch (e) {
+      showGate(true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  $("gateSubmit").addEventListener("click", submitCode);
+  $("gateCode").addEventListener("keydown", (e) => { if (e.key === "Enter") submitCode(); });
+
+  // On load: ask the server whether a code is required. If not, go straight in.
+  async function init() {
+    try {
+      const r = await fetch("/api/gate");
+      const { required } = await r.json();
+      if (!required) { showApp(); return; }
+      if (localStorage.getItem("unplayable_access")) { showApp(); return; }
+      showGate(false);
+    } catch (e) {
+      showApp(); // if the check fails, do not lock the user out; the server still enforces it
+    }
+  }
+  init();
 </script>
 </body>
 </html>
