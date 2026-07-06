@@ -217,19 +217,6 @@
       <!-- Filter by stamp: shows lies where that stamp leads the count -->
       <div id="filters" class="grid gap-1" style="grid-template-columns:repeat(7,minmax(0,1fr));" role="group" aria-label="Filter by stamp"></div>
 
-      <!-- Worst-lie hero: real votes only, never seeded -->
-      <button id="worst" class="hidden w-full text-left slip overflow-hidden">
-        <div class="flex items-center justify-between px-3 py-2 slip-head">
-          <span id="worstLabel" class="mono text-xs" style="color:var(--pencil-soft);">WORST LIE GOING ROUND</span>
-          <span id="worstTime" class="mono text-xs" style="color:var(--pencil-soft);"></span>
-        </div>
-        <div class="relative">
-          <img id="worstImg" class="w-full aspect-[16/7] object-cover block" alt="The worst lie on the feed" loading="lazy" />
-          <span id="worstStamp" class="stamp absolute bottom-2 left-3 text-base" style="background:rgba(255,255,255,.85);"></span>
-          <span class="mono absolute bottom-2 right-3 text-[11px] px-2 py-1 rounded" style="background:rgba(255,255,255,.85);color:var(--pencil-soft);" id="worstTally"></span>
-        </div>
-      </button>
-
       <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
       <div id="empty" class="hidden text-center py-12">
         <p class="display font-display text-2xl uppercase" style="color:var(--fairway);">Nothing here yet</p>
@@ -302,7 +289,7 @@
           <div id="stake" class="w-2 shrink-0"></div>
           <div class="p-5 flex-1">
             <div id="rulingType" class="font-display font-semibold uppercase tracking-widest text-xs"></div>
-            <h2 id="verdict" class="stamp text-2xl mt-3"></h2>
+            <h2 id="verdict" class="stamp text-lg mt-3"></h2>
             <p id="situation" class="text-sm text-ink/60 mt-1"></p>
             <p id="explanation" class="text-[15px] mt-3 leading-relaxed"></p>
 
@@ -458,7 +445,7 @@
     $("snapView").classList.add("hidden");
     $("feedView").classList.remove("hidden");
     $("tabs").classList.remove("hidden");
-    if (refresh) { loadFeed(); loadWorst(true); }
+    if (refresh) loadFeed();
     window.scrollTo({ top: 0 });
   }
   $("fab").addEventListener("click", showSnap);
@@ -481,7 +468,7 @@
     return t.toLocaleDateString("en-AU", { day: "numeric", month: "short" }).toUpperCase();
   }
 
-  function card(item) {
+  function card(item, isWorst) {
     const el = document.createElement("article");
     el.className = "slip overflow-hidden";
     const suggestedKey = STAMPS[item.suggested_stamp] ? item.suggested_stamp : "fair_cop";
@@ -510,9 +497,10 @@
         <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
         <span class="mono text-xs" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
       </div>
+      ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Worst lie going round</div>` : ""}
       <div class="relative">
         ${img}
-        <span class="stamp ${vTone} absolute top-3 left-3 text-lg" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
+        <span class="stamp ${vTone} absolute top-3 left-3 text-sm" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
         <div class="chips" role="group" aria-label="Stamp this lie">
           ${STAMP_KEYS.map((k) =>
             `<button class="chip ${STAMPS[k].tone}" data-chip="${k}" aria-pressed="false"><span class="row">${STAMPS[k].icon}<span class="q">?</span><span class="n" data-n="${k}"></span></span><span class="lbl">${STAMPS[k].label}</span></button>`
@@ -686,7 +674,13 @@
       $("empty").classList.remove("hidden");
       return;
     }
-    items.forEach((item) => list.appendChild(card(item)));
+    // The reigning worst lie (highest weighted score with real stamps) wears
+    // the banner on its ordinary card — no separate hero, no double-up.
+    let worstId = null, best = 0;
+    for (const i of feedItems) {
+      if ((i.worst_score || 0) > best) { best = i.worst_score; worstId = i.id; }
+    }
+    items.forEach((item) => list.appendChild(card(item, item.id === worstId)));
   }
 
   async function loadFeed() {
@@ -714,43 +708,6 @@
       showFeed(false);
       loadFeed();
     });
-  });
-
-  // --- Worst-lie hero ---
-  // Honesty rule: only ever a real post with real stamps. No votes -> no hero.
-  let worstLoaded = false;
-  async function loadWorst(force) {
-    if (worstLoaded && !force) return;
-    worstLoaded = true;
-    try {
-      const r = await fetch("/api/feed?sort=worst");
-      const items = await r.json();
-      const top = items.find((i) => (i.worst_score || 0) > 0 && i.image_path);
-      if (!top) { $("worst").classList.add("hidden"); return; }
-      const ageH = (Date.now() - new Date(top.created_at).getTime()) / 36e5;
-      $("worstLabel").textContent = ageH <= 48 ? "YESTERDAY'S WORST LIE" : "WORST LIE GOING ROUND";
-      $("worstTime").textContent = ageH < 1 ? "JUST IN"
-        : ageH < 24 ? Math.round(ageH) + "H AGO"
-        : Math.round(ageH / 24) + "D AGO";
-      $("worstImg").src = top.image_path;
-      const stake = STAKE[top.ruling_type] || STAKE.unclear;
-      $("worstStamp").textContent = top.verdict || stake.label;
-      $("worstStamp").className = "stamp absolute bottom-2 left-3 text-base " + stake.stamp;
-      const tally = Object.entries(top.stamp_counts || {})
-        .filter(([, n]) => n > 0)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 2)
-        .map(([k, n]) => (STAMPS[k] ? STAMPS[k].label.toUpperCase() : k.toUpperCase()) + " ×" + n)
-        .join(" · ");
-      $("worstTally").textContent = tally;
-      $("worst").classList.remove("hidden");
-    } catch (e) { /* hero is optional; never block the feed */ }
-  }
-  $("worst").addEventListener("click", () => {
-    currentTab = "worst";
-    document.querySelectorAll("[data-tab]").forEach((t) =>
-      t.setAttribute("aria-selected", String(t.dataset.tab === "worst")));
-    loadFeed();
   });
 
   // ============ Capture ============
@@ -926,7 +883,7 @@
     $("rulingType").textContent = offTopic ? "Not a golf lie" : stake.label;
     $("rulingType").className = "font-display font-semibold uppercase tracking-widest text-xs " + stake.type;
     $("verdict").textContent = data.verdict || "—";
-    $("verdict").className = "stamp text-2xl mt-3 " + (offTopic ? "stamp-neutral" : stake.stamp);
+    $("verdict").className = "stamp text-lg mt-3 " + (offTopic ? "stamp-neutral" : stake.stamp);
     $("situation").textContent = offTopic ? "" : (data.situation || "");
     $("explanation").textContent = data.explanation || "";
 
@@ -1056,14 +1013,48 @@
     return { w, h };
   }
 
-  function fitStampSize(x, label, maxW, start) {
-    let size = start;
-    x.font = "700 " + size + "px 'Oswald', sans-serif";
-    while (size > 40 && x.measureText(label).width + size * 0.9 > maxW) {
-      size -= 4;
-      x.font = "700 " + size + "px 'Oswald', sans-serif";
+  function wrapAll(x, text, maxW) {
+    const words = (text || "").split(" ");
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const t = line ? line + " " + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else line = t;
     }
-    return size;
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // Multi-line rubber stamp for the verdict: the FULL wording always fits —
+  // it shrinks and wraps (up to 3 lines) rather than truncating. Returns height.
+  function verdictStamp(x, label, ink, cx, cy, deg, maxW) {
+    let size = 46, lines;
+    for (;;) {
+      x.font = "700 " + size + "px 'Oswald', sans-serif";
+      lines = wrapAll(x, label, maxW - size * 0.9);
+      if (lines.length <= 2 || size <= 32) break;
+      size -= 4;
+    }
+    const padX = size * 0.45;
+    const w = Math.max(...lines.map((l) => x.measureText(l).width)) + padX * 2;
+    const lineH = size * 1.15;
+    const h = lines.length * lineH + size * 0.45;
+    x.save();
+    x.translate(cx, cy);
+    x.rotate(deg * Math.PI / 180);
+    x.fillStyle = "rgba(255,255,255,.9)";
+    x.fillRect(-w / 2 - 12, -h / 2 - 12, w + 24, h + 24);
+    x.strokeStyle = ink; x.lineWidth = Math.max(6, size * 0.11);
+    x.strokeRect(-w / 2, -h / 2, w, h);
+    x.globalAlpha = 0.35;                              // ink-bleed second pass
+    x.strokeRect(-w / 2 + 3, -h / 2 + 2, w, h);
+    x.globalAlpha = 1;
+    x.fillStyle = ink; x.textAlign = "center"; x.textBaseline = "middle";
+    lines.forEach((l, i) => x.fillText(l, 0, -h / 2 + size * 0.28 + lineH * (i + 0.5)));
+    x.restore();
+    x.textAlign = "left"; x.textBaseline = "top";
+    return h;
   }
 
   // data: a ruling/feed item · stampSel: the golfer's confirmed stamp key or null
@@ -1092,16 +1083,14 @@
     x.textAlign = "left";
 
     const photo = await getPhoto(data, preferPreview);
-    if (photo) drawCover(x, photo, 0, 150, W, 720);
+    if (photo) drawCover(x, photo, 0, 150, W, 620);
 
-    // Verdict stamp straddles the photo's bottom edge — stamped onto the slip,
-    // not laid out like a heading.
-    let verdict = (data.verdict || "RULING").toUpperCase();
-    if (verdict.length > 30) verdict = verdict.slice(0, 29).trimEnd() + "…";
+    // Verdict stamp straddles the photo's bottom edge — full ruling wording,
+    // wrapped and shrunk to fit, never truncated.
+    const verdict = (data.verdict || "RULING").toUpperCase();
     const ink = (STAKE[data.ruling_type] || STAKE.unclear).bar;
-    const vSize = fitStampSize(x, verdict, W - 2 * P, 88);
-    const vy = photo ? 870 : 300;
-    inkStamp(x, verdict, ink, W / 2, vy, -3.5, vSize, "rgba(255,255,255,.9)");
+    const vy = photo ? 770 : 300;
+    const vh = verdictStamp(x, verdict, ink, W / 2, vy, -3.5, W - 2 * P);
 
     // The golfer's confirmed stamp (never the app's unconfirmed suggestion):
     // slapped across the photo's top-right corner like a real rubber stamp.
@@ -1120,34 +1109,35 @@
           .sort((a, b) => b[1] - a[1]).slice(0, 3)
       : [];
 
-    // The cheeky one-liner is the shareable bit — give it room on the card.
+    // Text stack: full commentary, then rule. The stamp tally row is RESERVED —
+    // anchored above the footer so it can never be squeezed off the card.
     x.textBaseline = "top";
-    let ty = vy + (vSize * 1.55) / 2 + 44;
-    if (data.explanation) {
-      x.fillStyle = "#1B2420"; x.font = "400 36px 'Karla', sans-serif";
-      // Tighter when a tally row needs the space below.
-      for (const line of wrapText(x, data.explanation, W - 2 * P, top.length ? 2 : 3)) {
-        x.fillText(line, P, ty); ty += 48;
+    const floor = top.length ? H - 244 : H - 190;  // content stays above this
+    let ty = vy + vh / 2 + 34;
+    if (data.explanation && ty < floor - 44) {
+      x.fillStyle = "#1B2420"; x.font = "400 34px 'Karla', sans-serif";
+      for (const line of wrapText(x, data.explanation, W - 2 * P, 5)) {
+        if (ty + 38 > floor) break;
+        x.fillText(line, P, ty); ty += 46;
       }
-      ty += 14;
+      ty += 12;
     }
-    if (data.rule_number) {
-      x.fillStyle = "#0FA958"; x.font = "600 32px 'IBM Plex Mono', monospace";
+    if (data.rule_number && ty + 34 <= (top.length ? H - 218 : H - 190)) {
+      x.fillStyle = "#0FA958"; x.font = "600 30px 'IBM Plex Mono', monospace";
       x.fillText("R&A RULE " + data.rule_number + " · RULES OF GOLF", P, ty);
-      ty += 46;
     }
     if (top.length) {
-      ty += 10;
+      const tyT = H - 214;  // fixed row, always visible above the dashed rule
       let cx = P;
       for (const [k, n] of top) {
         const s = STAMPS[k];
         const label = s.label.toUpperCase();
         x.font = "700 34px 'Oswald', sans-serif";
         const w = x.measureText(label).width + 32;
-        inkStamp(x, label, s.ink, cx + w / 2, ty + 26, -2, 34, null);
+        inkStamp(x, label, s.ink, cx + w / 2, tyT + 26, -2, 34, null);
         x.fillStyle = "#65706A"; x.font = "600 28px 'IBM Plex Mono', monospace";
         x.textAlign = "left"; x.textBaseline = "middle";
-        x.fillText("×" + n, cx + w + 10, ty + 28);
+        x.fillText("×" + n, cx + w + 10, tyT + 28);
         cx += w + 10 + x.measureText("×" + n).width + 34;
         x.textBaseline = "top";
       }
@@ -1225,7 +1215,6 @@
     $("app").classList.remove("hidden");
     $("bottomBar").classList.remove("hidden");
     loadFeed();
-    loadWorst(false);
     if (location.hash === "#snap") showSnap();  // e.g. the About page's camera button
   }
 
