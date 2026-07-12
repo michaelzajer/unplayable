@@ -77,8 +77,8 @@
             mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
   }
   .stamp-red { color: #E03131; } .stamp-green { color: #0FA958; } .stamp-neutral { color: #1B2420; } .stamp-flag { color: #F5A623; }
-  /* compact variant for the overlay on feed photos */
-  .stamp-sm { font-size: .72rem; border-width: 2px; padding: .12rem .4rem; letter-spacing: .07em; }
+  /* compact variant for the verdict in the slip head */
+  .stamp-sm { font-size: .66rem; border-width: 2px; padding: .12rem .4rem; letter-spacing: .06em; transform: rotate(-2deg); }
 
   /* call rating: two buttons below the photo — thumbs up/down in golf clothes */
   .rate{
@@ -91,6 +91,9 @@
     min-width:0;overflow:hidden;
   }
   .rate svg{flex:none;width:16px;height:16px;}
+  /* compact variant for the filter row */
+  .rate-sm{min-height:34px;font-size:.66rem;padding:0 .4rem;border-radius:8px;gap:.3rem;}
+  .rate-sm svg{width:13px;height:13px;}
   .rate:active{transform:scale(.96);}
   .rate .n{font-family:'IBM Plex Mono',monospace;font-size:.72rem;opacity:.85;}
   .rate .lbl{overflow:hidden;text-overflow:ellipsis;}
@@ -489,14 +492,16 @@
       : `<div class="w-full aspect-[4/3]" style="background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(150,165,178,.25) 6px 7px),var(--card);"></div>`;
 
     el.innerHTML = `
-      <div class="slip-head flex items-center justify-between px-3 py-2">
-        <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
-        <span class="mono text-xs" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
+      <div class="slip-head flex items-center justify-between gap-2 px-3 py-2">
+        <div class="flex items-center gap-2 flex-wrap min-w-0">
+          <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
+          <span class="stamp stamp-sm ${vTone}" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
+        </div>
+        <span class="mono text-xs whitespace-nowrap" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
       </div>
       ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Hardest luck going round</div>` : ""}
       <div class="relative">
         ${img}
-        <span class="stamp stamp-sm ${vTone} absolute top-2 left-2" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
       </div>
       <div class="px-3 pt-2">
         <div class="luck-labels">
@@ -675,7 +680,7 @@
     const bar = $("filters");
     const mk = (key, label, icon, tone) => {
       const b = document.createElement("button");
-      b.className = "rate " + tone;
+      b.className = "rate rate-sm " + tone;
       b.dataset.filter = key;
       b.innerHTML = (icon || "") + '<span class="lbl">' + label + "</span>";
       b.addEventListener("click", () => {
