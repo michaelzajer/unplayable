@@ -153,12 +153,17 @@ _STAKE = {
     "unclear": ("#F5A623", "Ruling"),
 }
 
-# Stamp label + ink for the share page pills (traffic light, lucky to cursed).
-_STAMP_META = {
-    "gift": ("Gift", "#0FA958"), "fluke": ("Fluke", "#0FA958"),
-    "fair_cop": ("Fair cop", "#C28400"), "stiff": ("Stiff", "#C28400"),
-    "cooked": ("Cooked", "#E03131"), "brutal": ("Brutal", "#E03131"),
-}
+def _luck_bucket(avg: float) -> tuple[str, str]:
+    """Label + ink for an average luck rating (1 good lie .. 5 hard luck)."""
+    if avg < 1.8:
+        return ("Good lie", "#0FA958")
+    if avg < 2.6:
+        return ("Not bad", "#0FA958")
+    if avg < 3.4:
+        return ("Fair", "#C28400")
+    if avg < 4.2:
+        return ("Rough", "#E03131")
+    return ("Hard luck", "#E03131")
 _SHARE_TEMPLATE = (FRONTEND_DIR / "share.html").read_text(encoding="utf-8")
 
 
@@ -201,25 +206,33 @@ def share(submission_id: str, request: Request):
                       f'class="inline-flex items-center gap-1.5 text-fairway font-semibold '
                       f'text-sm mt-4">Read Rule {esc(rn)} on randa.org</a>')
 
-    # The crowd's stamps: pills on the page, and the leader leads the preview text.
+    # The crowd's read: luck average as one pill, call thumbs as two more.
     counts = db.get_stamp_counts(submission_id)
-    ranked = sorted(((k, n) for k, n in counts.items() if n > 0),
-                    key=lambda kn: kn[1], reverse=True)
-    if ranked:
-        pills = "".join(
-            f'<span class="pill" style="border-color:{_STAMP_META[k][1]};'
-            f'color:{_STAMP_META[k][1]};">{_STAMP_META[k][0]} ×{n}</span>'
-            for k, n in ranked)
+    luck_counts = {k: n for k, n in counts.items() if k.isdigit()}
+    total = sum(luck_counts.values())
+    pills = ""
+    if total:
+        avg = sum(int(k) * n for k, n in luck_counts.items()) / total
+        label, ink = _luck_bucket(avg)
+        pills += (f'<span class="pill" style="border-color:{ink};color:{ink};">'
+                  f'{label} · {avg:.1f}/5 · ×{total}</span>')
+    gc, bc = counts.get("good_call", 0), counts.get("bad_call", 0)
+    if gc:
+        pills += (f'<span class="pill" style="border-color:#0FA958;color:#0FA958;">'
+                  f'Good call ×{gc}</span>')
+    if bc:
+        pills += (f'<span class="pill" style="border-color:#E03131;color:#E03131;">'
+                  f'Bad call ×{bc}</span>')
+    if pills:
         stamp_block = (f'<div class="mt-4 flex flex-wrap gap-1.5" '
-                       f'aria-label="How golfers stamped this lie">{pills}</div>')
+                       f'aria-label="How golfers rated this lie">{pills}</div>')
     else:
         stamp_block = ('<p class="mt-4 font-mono text-xs" style="color:#65706A;">'
-                       'NO STAMPS YET — BE THE FIRST</p>')
+                       'NOT RATED YET — BE THE FIRST</p>')
 
     desc = explanation or situation or "A golf rules ruling from Unplayable."
-    if ranked:
-        top_k, top_n = ranked[0]
-        desc = f"Stamped {_STAMP_META[top_k][0].upper()} ×{top_n} by golfers. {desc}"
+    if total:
+        desc = f"Rated {label.upper()} ({avg:.1f}/5) by {total} golfers. {desc}"
 
     page = (
         _SHARE_TEMPLATE
@@ -345,8 +358,11 @@ def vote(
     session_id = session_id.strip()[:64]
     if not session_id:
         return JSONResponse({"error": "Missing session."}, status_code=400)
-    if stamp == "clear":
-        db.clear_vote(submission_id, session_id)
+    if stamp == "clear":            # clears the golfer's CALL rating
+        db.clear_vote(submission_id, session_id, kind="call")
+        return {"ok": True}
+    if stamp == "clear_luck":
+        db.clear_vote(submission_id, session_id, kind="luck")
         return {"ok": True}
     if not db.add_vote(submission_id, session_id, stamp):
         return JSONResponse({"error": "Unknown stamp or lie."}, status_code=400)

@@ -70,20 +70,9 @@ def prep_image(path: Path) -> bytes:
     return buf.getvalue()
 
 
-def crowd(suggested: str, n: int) -> list[str]:
-    """A realistic spread: most agree with the app, some drift a step either way."""
-    i = STAMP_ORDER.index(suggested if suggested in STAMP_ORDER else "fair_cop")
-    votes = []
-    for _ in range(n):
-        r = random.random()
-        if r < 0.58:
-            j = i
-        elif r < 0.85:
-            j = i + random.choice([-1, 1])
-        else:
-            j = i + random.choice([-2, 2])
-        votes.append(STAMP_ORDER[min(max(j, 0), len(STAMP_ORDER) - 1)])
-    return votes
+def crowd(n: int) -> list[str]:
+    """A realistic spread on the luck slider, skewed to the rough end."""
+    return [random.choices(STAMP_ORDER, weights=(1, 1, 2, 3, 3))[0] for _ in range(n)]
 
 
 def load_metadata(folder: Path) -> dict[str, dict]:
@@ -160,14 +149,13 @@ def main() -> None:
             conn.execute(update(db.submission)
                          .where(db.submission.c.id == sid).values(created_at=created))
             n_votes = random.randint(args.min_votes, max(args.min_votes, args.max_votes))
-            for stamp in crowd(result.get("suggested_stamp", "fair_cop"), n_votes):
+            for stamp in crowd(n_votes):
                 conn.execute(insert(db.vote).values(
                     id=str(uuid.uuid4()), submission_id=sid,
                     session_id=f"seed-{uuid.uuid4()}", stamp=stamp,
                     created_at=created + timedelta(hours=random.uniform(0.5, 48))))
 
-        print(f"  OK   {photo.name}: {result.get('verdict', '?')!r} · app reckons "
-              f"{result.get('suggested_stamp')} · {n_votes} stamps")
+        print(f"  OK   {photo.name}: {result.get('verdict', '?')!r} · {n_votes} ratings")
         seeded += 1
 
     print(f"\nDone: {seeded} seeded, {skipped} skipped. "

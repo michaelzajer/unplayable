@@ -23,12 +23,15 @@ from sqlalchemy import (
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-# The six stamps, lucky to cursed. This tuple is the single source of truth;
-# the adapter and the API both validate against it.
-STAMPS = ("gift", "fluke", "fair_cop", "stiff", "cooked", "brutal")
+# Rating model v4: TWO independent ratings per golfer per lie.
+#   luck  — 5-notch slider on THE LIE: "1" good lie .. "5" hard luck
+#   call  — thumbs on THE RULING: good_call / bad_call
+LUCK_SET = frozenset(("1", "2", "3", "4", "5"))
+CALL_SET = frozenset(("good_call", "bad_call"))
+STAMPS = ("1", "2", "3", "4", "5", "good_call", "bad_call")
 
-# "Worst lies" is a weighted sort, not a raw count.
-STAMP_WEIGHTS = {"brutal": 3, "cooked": 2, "stiff": 1}
+# "The Feed" sort: hardest-luck lies first (call votes carry no weight).
+STAMP_WEIGHTS = {"2": 1, "3": 2, "4": 3, "5": 4}
 
 
 def _database_url() -> str:
@@ -85,7 +88,8 @@ vote = Table(
     Column("session_id", String, nullable=False),
     Column("stamp", String, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
-    UniqueConstraint("submission_id", "session_id", name="uq_vote_once"),
+    # No unique constraint: one luck row AND one call row may coexist per
+    # (submission, session). add_vote enforces one-per-kind by replacement.
 )
 
 
@@ -130,6 +134,18 @@ def init_db() -> None:
             conn.execute(text("UPDATE vote SET stamp = 'brutal' WHERE stamp IS NULL"))
         if "value" in vote_cols:
             conn.execute(text("ALTER TABLE vote DROP COLUMN value"))
+
+    # Rating v4 migration: the six lie-stamps predate both current scales and
+    # are DELETED rather than faked. good_call/bad_call rows remain valid.
+    with engine.begin() as conn:
+        conn.execute(text(
+            "DELETE FROM vote WHERE stamp IN "
+            "('gift', 'fluke', 'fair_cop', 'stiff', 'cooked', 'brutal')"))
+    # Databases created under v2/v3 carry a one-vote-per-session constraint that
+    # would block holding a luck AND a call rating at once. Drop it (Postgres).
+    if engine.dialect.name.startswith("postgres"):
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE vote DROP CONSTRAINT IF EXISTS uq_vote_once"))
 
 
 def insert_image(data: bytes, content_type: str) -> str:
@@ -205,7 +221,8 @@ def get_feed(limit: int = 50, sort: str = "latest",
         rows = [dict(r) for r in conn.execute(q).mappings().all()]
         ids = [r["id"] for r in rows]
         counts: dict[str, dict[str, int]] = {}
-        mine_map: dict[str, str] = {}
+        mine_luck: dict[str, str] = {}
+        mine_call: dict[str, str] = {}
         if ids:
             tq = (
                 select(v.c.submission_id, v.c.stamp, func.count(v.c.id).label("n"))
@@ -217,14 +234,16 @@ def get_feed(limit: int = 50, sort: str = "latest",
             if session_id:
                 mq = select(v.c.submission_id, v.c.stamp).where(
                     (v.c.submission_id.in_(ids)) & (v.c.session_id == session_id))
-                mine_map = {sid: stamp for sid, stamp in conn.execute(mq)}
+                for sid, stamp in conn.execute(mq):
+                    (mine_luck if stamp in LUCK_SET else mine_call)[sid] = stamp
 
     for r in rows:
         tally = {stamp: counts.get(r["id"], {}).get(stamp, 0) for stamp in STAMPS}
         r["stamp_counts"] = tally
         r["vote_count"] = sum(tally.values())
         r["worst_score"] = sum(STAMP_WEIGHTS.get(k, 0) * n for k, n in tally.items())
-        r["my_stamp"] = mine_map.get(r["id"])
+        r["my_luck"] = mine_luck.get(r["id"])
+        r["my_call"] = mine_call.get(r["id"])
 
     if sort == "worst":
         rows.sort(key=lambda r: (r["worst_score"], r["created_at"]), reverse=True)
@@ -250,6 +269,7 @@ def add_vote(submission_id: str, session_id: str, stamp: str) -> bool:
     """
     if stamp not in STAMPS:
         return False
+    same_kind = tuple(LUCK_SET) if stamp in LUCK_SET else tuple(CALL_SET)
     with engine.begin() as conn:
         row = conn.execute(
             select(submission.c.shared, submission.c.session_id).where(
@@ -257,8 +277,11 @@ def add_vote(submission_id: str, session_id: str, stamp: str) -> bool:
         ).first()
         if not row or not (row.shared or (row.session_id and row.session_id == session_id)):
             return False
+        # Replace only the same KIND of rating; the other kind stays put.
         conn.execute(delete(vote).where(
-            (vote.c.submission_id == submission_id) & (vote.c.session_id == session_id)))
+            (vote.c.submission_id == submission_id)
+            & (vote.c.session_id == session_id)
+            & (vote.c.stamp.in_(same_kind))))
         conn.execute(insert(vote).values(
             id=str(uuid.uuid4()), submission_id=submission_id,
             session_id=session_id, stamp=stamp, created_at=_now()))
@@ -293,8 +316,11 @@ def insert_feedback(rec: dict) -> str:
     return fid
 
 
-def clear_vote(submission_id: str, session_id: str) -> None:
-    """Remove the caller's stamp (tapping the applied stamp un-stamps it)."""
+def clear_vote(submission_id: str, session_id: str, kind: str = "call") -> None:
+    """Remove the caller's rating of one kind (call or luck)."""
+    values = tuple(CALL_SET) if kind == "call" else tuple(LUCK_SET)
     with engine.begin() as conn:
         conn.execute(delete(vote).where(
-            (vote.c.submission_id == submission_id) & (vote.c.session_id == session_id)))
+            (vote.c.submission_id == submission_id)
+            & (vote.c.session_id == session_id)
+            & (vote.c.stamp.in_(values))))

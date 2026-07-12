@@ -77,90 +77,81 @@
             mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
   }
   .stamp-red { color: #E03131; } .stamp-green { color: #0FA958; } .stamp-neutral { color: #1B2420; } .stamp-flag { color: #F5A623; }
+  /* compact variant for the overlay on feed photos */
+  .stamp-sm { font-size: .72rem; border-width: 2px; padding: .12rem .4rem; letter-spacing: .07em; }
 
-  /* stamp chips: six compact buttons over the photo, all visible at once */
-  .chips{
-    position:absolute;left:.35rem;right:.35rem;bottom:.35rem;
-    /* minmax(0,1fr): columns may shrink below label width, so the grid can
-       never force the page wider than the screen */
-    display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;
-  }
-  .chip{
-    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.03em;
-    text-transform:uppercase;font-size:.55rem;line-height:1;white-space:nowrap;
-    min-height:46px;padding:.25rem .1rem;border-radius:8px;
+  /* call rating: two buttons below the photo — thumbs up/down in golf clothes */
+  .rate{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;font-size:.8rem;line-height:1;white-space:nowrap;
+    min-height:46px;padding:0 .6rem;border-radius:10px;
     border:2px solid currentColor;background-color:rgba(255,255,255,.9);
-    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;
+    display:inline-flex;align-items:center;justify-content:center;gap:.45rem;
     transition:transform .08s ease,background .12s ease,color .12s ease;
-    overflow:hidden;min-width:0;
+    min-width:0;overflow:hidden;
   }
-  .chip .lbl{max-width:100%;overflow:hidden;text-overflow:ellipsis;}
-  .chip svg{flex:none;width:12px;height:12px;}
-  .chip .row{display:inline-flex;align-items:center;gap:.2rem;}
-  .chip:active{transform:scale(.94);}
-  .chip .n{font-family:'IBM Plex Mono',monospace;font-size:.64rem;opacity:.85;}
-  .chip .q{font-family:'IBM Plex Mono',monospace;font-size:.72rem;display:none;}
-  .chip.suggested{border-style:dashed;}
-  .chip.suggested .q{display:inline;}
-  .chip.stamped{color:var(--card);}
-  .chip.stamped.tone-green{background-color:var(--ink-green);border-color:var(--ink-green);}
-  .chip.stamped.tone-neutral{background-color:var(--ink-amber);border-color:var(--ink-amber);}
-  .chip.stamped.tone-red{background-color:var(--ink-red);border-color:var(--ink-red);}
-  .chip.stamped.tone-ink{background-color:var(--pencil);border-color:var(--pencil);}
+  .rate svg{flex:none;width:16px;height:16px;}
+  .rate:active{transform:scale(.96);}
+  .rate .n{font-family:'IBM Plex Mono',monospace;font-size:.72rem;opacity:.85;}
+  .rate .lbl{overflow:hidden;text-overflow:ellipsis;}
+  .rate.stamped{color:var(--card);}
+  .rate.stamped.tone-green{background-color:var(--ink-green);border-color:var(--ink-green);}
+  .rate.stamped.tone-red{background-color:var(--ink-red);border-color:var(--ink-red);}
+  .rate.stamped.tone-ink{background-color:var(--pencil);border-color:var(--pencil);}
   @keyframes chipthunk{
-    0%{transform:scale(1.28);}
-    60%{transform:scale(.92);}
+    0%{transform:scale(1.22);}
+    60%{transform:scale(.94);}
     100%{transform:scale(1);}
   }
-  .chip.just-stamped{animation:chipthunk .25s ease-out;}
+  .rate.just-stamped, .mini.just-stamped{animation:chipthunk .25s ease-out;}
   .tone-green{color:var(--ink-green);}
-  .tone-neutral{color:var(--ink-amber);}
   .tone-red{color:var(--ink-red);}
   .tone-ink{color:var(--pencil);}
+
+  /* the luck slider: green good lie -> amber -> red hard luck, 5 notches */
+  input.luck{
+    -webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:999px;
+    background:linear-gradient(90deg,#0FA958 0%,#0FA958 30%,#C28400 45%,#C28400 55%,#E03131 70%,#E03131 100%);
+    outline-offset:4px;margin:8px 0 2px;
+  }
+  input.luck::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:#FFFFFF;border:3px solid var(--pencil);
+    box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;
+  }
+  input.luck::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;
+    background:#FFFFFF;border:3px solid var(--pencil);
+    box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;
+  }
+  /* hollow thumb until this golfer has rated */
+  input.luck.unrated::-webkit-slider-thumb{border-color:var(--pencil-soft);background:#F4F8FB;}
+  input.luck.unrated::-moz-range-thumb{border-color:var(--pencil-soft);background:#F4F8FB;}
+  .luck-labels{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:'IBM Plex Mono',monospace;font-size:.58rem;
+    letter-spacing:.04em;text-transform:uppercase;
+  }
   .suggest-note{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.05em;color:var(--pencil-soft);text-transform:uppercase;}
 
-  /* result-page stamp control: suggested (dashed) -> stamped (solid ink) */
-  .vote {
-    font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase;
-    border: 2.5px dashed currentColor; border-radius: 4px;
-    min-height: 44px; padding: 0 .9rem;
-    display: inline-flex; align-items: center; gap: .5rem; background: transparent;
-    transition: transform .08s ease, background .12s ease, color .12s ease, border-color .12s ease;
+  /* small card-action buttons (Share, Post to feed) — blue = app action */
+  .mini{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.05em;
+    text-transform:uppercase;font-size:.7rem;line-height:1;white-space:nowrap;
+    min-height:38px;padding:0 .7rem;border-radius:8px;
+    border:2px solid var(--fairway);color:var(--fairway);background:var(--card);
+    display:inline-flex;align-items:center;gap:.35rem;
+    transition:transform .08s ease;
   }
-  .vote:active { transform: scale(.96) rotate(-1deg); }
-  .vote.tone-green { color: #0FA958; }
-  .vote.tone-neutral { color: #C28400; }
-  .vote.tone-red { color: #E03131; }
-  .vote.stamped { border-style: solid; color: #FFFFFF; transform: rotate(-2deg); }
-  .vote.stamped.tone-green { background: #0FA958; border-color: #0FA958; }
-  .vote.stamped.tone-neutral { background: #C28400; border-color: #C28400; }
-  .vote.stamped.tone-red { background: #E03131; border-color: #E03131; }
-  @keyframes thunk {
-    0% { transform: rotate(-2deg) scale(1.25); }
-    60% { transform: rotate(-2deg) scale(.94); }
-    100% { transform: rotate(-2deg) scale(1); }
-  }
-  .vote.just-stamped { animation: thunk .28s ease-out; }
-  .more {
-    min-height: 44px; min-width: 44px; border-radius: 4px;
-    border: 2.5px solid transparent; color: #65706A;
-    font-size: 1.3rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
-  }
-  .picker {
-    display: flex; gap: .5rem; overflow-x: auto; padding: .65rem .1rem .25rem;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .picker::-webkit-scrollbar { display: none; }
-  .pick {
-    font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: .07em;
-    text-transform: uppercase; font-size: .8rem; white-space: nowrap;
-    border: 2.5px solid currentColor; border-radius: 4px;
-    min-height: 44px; padding: 0 .7rem; background: transparent;
-    display: inline-flex; align-items: center; gap: .4rem;
-    transform: rotate(-2deg);
-  }
-  .pick:nth-child(even) { transform: rotate(1.5deg); }
+  .mini svg{flex:none;width:13px;height:13px;}
+  .mini:active{transform:scale(.95);}
+  .mini.solid{background:var(--fairway);color:var(--card);}
+  .mini:disabled{opacity:.65;}
+  .mini .n{font-family:'IBM Plex Mono',monospace;font-size:.66rem;opacity:.85;}
+  .mini.tone-green{border-color:var(--ink-green);color:var(--ink-green);}
+  .mini.tone-red{border-color:var(--ink-red);color:var(--ink-red);}
+  .mini.on.tone-green{background:var(--ink-green);color:#FFFFFF;}
+  .mini.on.tone-red{background:var(--ink-red);color:#FFFFFF;}
 
   .tab{
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;
@@ -173,7 +164,7 @@
   :focus-visible { outline: 3px solid #F5A623; outline-offset: 2px; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
-    .stamp, .vote, .vote.stamped, .pick { transform: none; }
+    .stamp { transform: none; }
   }
 </style>
 </head>
@@ -188,7 +179,7 @@
     </div>
     <nav id="tabs" class="max-w-md mx-auto px-4 flex gap-6" style="background:var(--card);border-bottom:1px solid var(--rule);" role="tablist" aria-label="Feed views">
       <button class="tab" role="tab" aria-selected="true" data-tab="latest">Latest</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="worst">Worst lies</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="worst">The Feed</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="mine">My lies</button>
     </nav>
   </header>
@@ -214,8 +205,8 @@
     <!-- ============ FEED VIEW (home) ============ -->
     <div id="feedView" class="space-y-4">
 
-      <!-- Filter by stamp: shows lies where that stamp leads the count -->
-      <div id="filters" class="grid gap-1" style="grid-template-columns:repeat(7,minmax(0,1fr));" role="group" aria-label="Filter by stamp"></div>
+      <!-- Filter by rating: shows lies where that rating leads the count -->
+      <div id="filters" class="grid gap-1.5" style="grid-template-columns:repeat(3,minmax(0,1fr));" role="group" aria-label="Filter by rating"></div>
 
       <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
       <div id="empty" class="hidden text-center py-12">
@@ -299,16 +290,19 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
             </a>
 
-            <!-- Stamp your own lie: suggestion is dashed until you confirm it -->
+            <!-- Rate the lie + the call -->
             <div id="stampRow" class="hidden mt-4 pt-4 border-t border-ink/10">
-              <div class="flex items-center gap-2">
-                <div class="flex flex-col gap-1">
-                  <button id="stampBtn" class="vote" aria-pressed="false"></button>
-                  <span id="stampNote" class="suggest-note">Rate the ruling</span>
-                </div>
-                <button id="stampMore" class="more" aria-expanded="false" aria-label="Choose a different stamp">⋯</button>
+              <div class="luck-labels">
+                <span style="color:#0FA958;">Good lie</span>
+                <span class="suggest-note">Rate the lie</span>
+                <span style="color:#E03131;">Hard luck</span>
               </div>
-              <div id="stampTray" class="picker" hidden></div>
+              <input id="rateSlider" type="range" class="luck unrated" min="1" max="5" step="1" value="3"
+                aria-label="Rate the lie: 1 good lie to 5 hard luck" />
+              <div class="flex items-center gap-1.5 mt-3" role="group" aria-label="Rate the call">
+                <button id="rateGood" class="mini tone-green" aria-pressed="false"></button>
+                <button id="rateBad" class="mini tone-red" aria-pressed="false"></button>
+              </div>
             </div>
 
             <div id="confidenceRow" class="mt-4 flex items-center gap-2 text-xs text-ink/45">
@@ -387,24 +381,26 @@
     play_as_it_lies: "stamp-red", unclear: "stamp-neutral",
   };
 
-  // The six stamps, lucky to cursed. Keys mirror the backend enum exactly.
-  // Icons: horseshoe luck at one end, skull at the other.
-  const ICON = (d) => `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-  const STAMPS = {
-    gift:     { label: "Gift",     tone: "tone-green",  ink: "#0FA958",
-                icon: ICON('<rect x="5" y="10" width="14" height="10" rx="1"/><path d="M5 13h14M12 10v10M8 10C6 8 6.5 5 9 5.5c2 .4 3 2.5 3 4.5 0-2 1-4.1 3-4.5 2.5-.5 3 2.5 1 4.5"/>') },
-    fluke:    { label: "Fluke",    tone: "tone-green",  ink: "#0FA958",
-                icon: ICON('<path d="M6 20v-7a6 6 0 0 1 12 0v7"/><path d="M4.5 17H8M16 17h3.5"/>') },
-    fair_cop: { label: "Fair cop", tone: "tone-neutral", ink: "#C28400",
-                icon: ICON('<path d="M12 4v15M6 19h12M4 7h16"/><path d="M7 7l-2.5 5h5zM17 7l-2.5 5h5z"/>') },
-    stiff:    { label: "Stiff",    tone: "tone-neutral", ink: "#C28400",
-                icon: ICON('<path d="M4 7c6-2.5 12-2.5 16 1.5"/><circle cx="12" cy="15.5" r="4"/>') },
-    cooked:   { label: "Cooked",   tone: "tone-red",    ink: "#E03131",
-                icon: ICON('<circle cx="10" cy="14" r="6"/><path d="M14.5 9.5L21 3.5"/>') },
-    brutal:   { label: "Brutal",   tone: "tone-red",    ink: "#E03131",
-                icon: ICON('<path d="M5 10a7 7 0 0 1 14 0c0 2.7-1.3 4.2-2.5 5.3V20h-9v-4.7C6.3 14.2 5 12.7 5 10z"/><circle cx="9.5" cy="10" r="1.1" fill="currentColor"/><circle cx="14.5" cy="10" r="1.1" fill="currentColor"/>') },
-  };
-  const STAMP_KEYS = Object.keys(STAMPS);
+  // Rating v3: a 5-notch luck slider on THE LIE. 1 = good lie, 5 = hard luck.
+  const ICON = (d) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON_CUP = ICON('<path d="M12 3v9"/><path d="M12 3l5.5 2L12 7"/><path d="M4 19c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/>');
+  const ICON_SPLASH = ICON('<circle cx="12" cy="7" r="2.6"/><path d="M3 17.5c1.8-1.4 3.7-1.4 5.5 0s3.7 1.4 5.5 0 3.7-1.4 5.5 0"/>');
+  const LUCK_NAMES = ["", "GOOD LIE", "NOT BAD", "FAIR", "ROUGH", "HARD LUCK"];
+  function luckBucket(avg) {
+    if (avg < 1.8) return { label: "Good lie", ink: "#0FA958" };
+    if (avg < 2.6) return { label: "Not bad", ink: "#0FA958" };
+    if (avg < 3.4) return { label: "Fair", ink: "#C28400" };
+    if (avg < 4.2) return { label: "Rough", ink: "#E03131" };
+    return { label: "Hard luck", ink: "#E03131" };
+  }
+  function luckStats(counts) {
+    let total = 0, sum = 0;
+    for (let v = 1; v <= 5; v++) {
+      const n = (counts || {})[String(v)] || 0;
+      total += n; sum += v * n;
+    }
+    return total ? { total, avg: sum / total } : null;
+  }
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const $ = (id) => document.getElementById(id);
@@ -471,8 +467,8 @@
   function card(item, isWorst) {
     const el = document.createElement("article");
     el.className = "slip overflow-hidden";
-    const suggestedKey = STAMPS[item.suggested_stamp] ? item.suggested_stamp : "fair_cop";
-    const myKey = STAMPS[item.my_stamp] ? item.my_stamp : null;
+    const myLuck = /^[1-5]$/.test(String(item.my_luck)) ? String(item.my_luck) : null;
+    const myCall = (item.my_call === "good_call" || item.my_call === "bad_call") ? item.my_call : null;
     const counts = item.stamp_counts || {};
     const vTone = VERDICT_TONE[item.ruling_type] || "stamp-neutral";
     // Slip head: "HOLE 7 · WOODLANDS GC" when the golfer told us.
@@ -484,9 +480,9 @@
     // Rule reference: server guarantees rule_url is a randa.org link.
     const ruleLink = (item.rule_number && item.rule_url)
       ? `<a href="${esc(item.rule_url)}" target="_blank" rel="noopener"
-           class="mono text-xs underline underline-offset-4 min-h-[44px] inline-flex items-center"
+           class="mono text-xs underline underline-offset-4 inline-flex items-center py-1"
            style="color:var(--ink-green);">R&amp;A Rule ${esc(item.rule_number)} ↗</a>`
-      : `<span class="suggest-note">Rate the ruling</span>`;
+      : "";
 
     const img = item.image_path
       ? `<img src="${esc(item.image_path)}" class="w-full aspect-[4/3] object-cover block" alt="The lie" loading="lazy" />`
@@ -497,46 +493,86 @@
         <span class="mono text-xs" style="color:var(--pencil-soft);">${headLeft}</span>
         <span class="mono text-xs" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
       </div>
-      ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Worst lie going round</div>` : ""}
+      ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Hardest luck going round</div>` : ""}
       <div class="relative">
         ${img}
-        <span class="stamp ${vTone} absolute top-3 left-3 text-sm" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
-        <div class="chips" role="group" aria-label="Stamp this lie">
-          ${STAMP_KEYS.map((k) =>
-            `<button class="chip ${STAMPS[k].tone}" data-chip="${k}" aria-pressed="false"><span class="row">${STAMPS[k].icon}<span class="q">?</span><span class="n" data-n="${k}"></span></span><span class="lbl">${STAMPS[k].label}</span></button>`
-          ).join("")}
+        <span class="stamp stamp-sm ${vTone} absolute top-2 left-2" style="background:rgba(255,255,255,.85);">${esc(item.verdict || "Ruling")}</span>
+      </div>
+      <div class="px-3 pt-2">
+        <div class="luck-labels">
+          <span style="color:var(--ink-green);">Good lie</span>
+          <span data-crowd style="color:var(--pencil-soft);"></span>
+          <span style="color:var(--ink-red);">Hard luck</span>
         </div>
+        <input type="range" class="luck unrated" min="1" max="5" step="1" value="3"
+          aria-label="Rate the lie: 1 good lie to 5 hard luck" />
       </div>
-      <div class="px-3 pt-3 pb-1">
+      <div class="px-3 pt-2 pb-1">
         <p class="text-[15px] leading-snug">${esc(item.explanation || item.situation || "")}</p>
-      </div>
-      <div class="px-3 pt-1 pb-2 flex items-center justify-between" data-votes>
         ${ruleLink}
-        <button class="mono text-xs underline underline-offset-4 min-h-[44px] px-2" data-share style="color:var(--pencil-soft);">Share</button>
+      </div>
+      <div class="px-3 pt-1 pb-3 flex items-center justify-between gap-2" data-votes>
+        <div class="flex items-center gap-1.5" role="group" aria-label="Rate the call">
+          <button class="mini tone-green" data-chip="good_call" aria-pressed="false">
+            ${ICON_CUP}Good call<span class="n" data-n="good_call"></span></button>
+          <button class="mini tone-red" data-chip="bad_call" aria-pressed="false">
+            ${ICON_SPLASH}Bad call<span class="n" data-n="bad_call"></span></button>
+        </div>
+        <div class="flex items-center gap-2">
+          ${!item.shared ? `<button class="mini solid" data-post>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            Post to feed</button>` : ""}
+          <button class="mini" data-share aria-label="Share this lie">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
+            Share</button>
+        </div>
       </div>`;
 
-    wireVotes(el, item, suggestedKey, myKey, counts);
+    wireVotes(el, item, myLuck, myCall, counts);
     el.querySelector("[data-share]").addEventListener("click", () => shareLie(item));
+    const postBtn = el.querySelector("[data-post]");
+    if (postBtn) {
+      postBtn.addEventListener("click", async () => {
+        postBtn.disabled = true;
+        postBtn.textContent = "Posting…";
+        try {
+          const fd = new FormData();
+          fd.append("submission_id", item.id);
+          const r = await fetch("/api/post-to-feed", { method: "POST", body: fd, headers: accessHeaders() });
+          if (!r.ok) throw new Error();
+          item.shared = true;
+          postBtn.textContent = "Posted ✓";
+          setTimeout(() => postBtn.remove(), 1200);
+        } catch (e) {
+          postBtn.textContent = "Try again";
+          postBtn.disabled = false;
+        }
+      });
+    }
     return el;
   }
 
-  function wireVotes(el, item, suggestedKey, myKey, counts) {
-    const chips = el.querySelectorAll("[data-chip]");
+  function wireVotes(el, item, myLuck, myCall, counts) {
+    const slider = el.querySelector("input.luck");
+    const crowdEl = el.querySelector("[data-crowd]");
+    const callBtns = el.querySelectorAll("[data-chip]");
     const tallies = { ...counts };
-    let choice = myKey; // the caller's current stamp, or null
+    let luck = myLuck;  // "1".."5" or null
+    let call = myCall;  // good_call / bad_call / null
 
     const render = () => {
-      const total = STAMP_KEYS.reduce((sum, k) => sum + (tallies[k] || 0), 0);
-      chips.forEach((c) => {
-        const k = c.dataset.chip;
+      const stats = luckStats(tallies);
+      crowdEl.textContent = stats
+        ? "CROWD " + stats.avg.toFixed(1) + "/5 · ×" + stats.total
+        : "SLIDE TO RATE";
+      slider.value = luck || "3";
+      slider.classList.toggle("unrated", !luck);
+      callBtns.forEach((b) => {
+        const k = b.dataset.chip;
         const n = tallies[k] || 0;
-        c.querySelector(".n").textContent = n > 0 ? n : "";
-        c.setAttribute("aria-label",
-          STAMPS[k].label + (n > 0 ? ", " + n + " of " + total + " stamps" : ""));
-        c.classList.toggle("stamped", choice === k);
-        c.setAttribute("aria-pressed", String(choice === k));
-        // The app's pick stays dashed with a "?" until a human stamps.
-        c.classList.toggle("suggested", !choice && k === suggestedKey);
+        b.querySelector(".n").textContent = n > 0 ? n : "";
+        b.classList.toggle("on", call === k);
+        b.setAttribute("aria-pressed", String(call === k));
       });
     };
 
@@ -547,46 +583,48 @@
       fd.append("session_id", sessionId);
       const r = await fetch("/api/vote", { method: "POST", body: fd, headers: accessHeaders() });
       if (r.status === 401) {
-        alert("Enter the access code first, then come back to stamp.");
+        alert("Enter the access code first, then come back to rate.");
         return false;
       }
       return r.ok;
     };
 
-    const apply = (key, chipEl) => {
-      const prev = choice;
+    slider.addEventListener("change", () => {
+      const v = String(slider.value);
+      const prev = luck;
       if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
-      choice = key;
-      tallies[key] = (tallies[key] || 0) + 1;
+      luck = v;
+      tallies[v] = (tallies[v] || 0) + 1;
       render();
-      if (!reduced && chipEl) {
-        chipEl.classList.remove("just-stamped"); void chipEl.offsetWidth;
-        chipEl.classList.add("just-stamped");
-        if (navigator.vibrate) navigator.vibrate(15);
-      }
-      sync(key).then((ok) => { if (!ok) {
-        tallies[key] = Math.max(0, (tallies[key] || 0) - 1);
-        choice = prev;
+      if (!reduced && navigator.vibrate) navigator.vibrate(15);
+      sync(v).then((ok) => { if (!ok) {
+        tallies[v] = Math.max(0, (tallies[v] || 0) - 1);
+        luck = prev;
         if (prev) tallies[prev] = (tallies[prev] || 0) + 1;
         render();
       }});
-    };
+    });
 
-    const clear = () => {
-      const prev = choice;
-      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
-      choice = null;
-      render();
-      sync("clear").then((ok) => { if (!ok && prev) {
-        choice = prev; tallies[prev] = (tallies[prev] || 0) + 1;
+    callBtns.forEach((b) => {
+      b.addEventListener("click", () => {
+        const k = b.dataset.chip;
+        const prev = call;
+        const clearing = call === k;
+        if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
+        call = clearing ? null : k;
+        if (!clearing) tallies[k] = (tallies[k] || 0) + 1;
         render();
-      }});
-    };
-
-    chips.forEach((c) => {
-      c.addEventListener("click", () => {
-        const k = c.dataset.chip;
-        choice === k ? clear() : apply(k, c);
+        if (!reduced && !clearing) {
+          b.classList.remove("just-stamped"); void b.offsetWidth;
+          b.classList.add("just-stamped");
+          if (navigator.vibrate) navigator.vibrate(15);
+        }
+        sync(clearing ? "clear" : k).then((ok) => { if (!ok) {
+          if (!clearing) tallies[k] = Math.max(0, (tallies[k] || 0) - 1);
+          call = prev;
+          if (prev) tallies[prev] = (tallies[prev] || 0) + 1;
+          render();
+        }});
       });
     });
 
@@ -601,7 +639,8 @@
     // WhatsApp, Messages as a picture — stamps, verdict and all).
     try {
       const blob = await buildShareImage(item,
-        STAMPS[item.my_stamp] ? item.my_stamp : null, item.stamp_counts || null, false);
+        /^[1-5]$/.test(String(item.my_luck)) ? String(item.my_luck) : null,
+        item.stamp_counts || null, false);
       const file = new File([blob], "unplayable.jpg", { type: "image/jpeg" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], text: caption, title: "Unplayable" });
@@ -626,34 +665,34 @@
   let currentFilter = "";
   let feedItems = [];
 
-  function leadingStamp(item) {
-    const counts = item.stamp_counts || {};
-    let best = null, bestN = 0;
-    STAMP_KEYS.forEach((k) => {
-      const n = counts[k] || 0;
-      if (n > bestN) { best = k; bestN = n; }
-    });
-    return best; // null when unstamped
+  function bucketOf(item) {
+    const stats = luckStats(item.stamp_counts);
+    if (!stats) return null;
+    return stats.avg <= 2.5 ? "good" : stats.avg >= 3.5 ? "hard" : "mid";
   }
 
   function buildFilters() {
     const bar = $("filters");
     const mk = (key, label, icon, tone) => {
       const b = document.createElement("button");
-      b.className = "chip " + tone;
+      b.className = "rate " + tone;
       b.dataset.filter = key;
-      b.innerHTML = (icon ? '<span class="row">' + icon + "</span>" : "")
-        + '<span class="lbl">' + label + "</span>";
+      b.innerHTML = (icon || "") + '<span class="lbl">' + label + "</span>";
       b.addEventListener("click", () => {
         currentFilter = currentFilter === key ? "" : key; // tap again to clear
-        bar.querySelectorAll(".chip").forEach((c) =>
+        bar.querySelectorAll(".rate").forEach((c) =>
           c.classList.toggle("stamped", c.dataset.filter === currentFilter));
         renderFeed();
       });
       bar.appendChild(b);
     };
     mk("", "All", "", "tone-ink");
-    STAMP_KEYS.forEach((k) => mk(k, STAMPS[k].label, STAMPS[k].icon, STAMPS[k].tone));
+    mk("good", "Good lies",
+       ICON('<path d="M12 3v9"/><path d="M12 3l5.5 2L12 7"/><path d="M4 19c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/>'),
+       "tone-green");
+    mk("hard", "Hard luck",
+       ICON('<circle cx="12" cy="7" r="2.6"/><path d="M3 17.5c1.8-1.4 3.7-1.4 5.5 0s3.7 1.4 5.5 0 3.7-1.4 5.5 0"/>'),
+       "tone-red");
     bar.querySelector('[data-filter=""]').classList.add("stamped");
   }
   buildFilters();
@@ -663,11 +702,11 @@
     list.innerHTML = "";
     $("empty").classList.add("hidden");
     const items = currentFilter
-      ? feedItems.filter((i) => leadingStamp(i) === currentFilter)
+      ? feedItems.filter((i) => bucketOf(i) === currentFilter)
       : feedItems;
     if (!items.length) {
       $("emptyHint").textContent = currentFilter
-        ? "No lies where " + STAMPS[currentFilter].label + " leads — yet."
+        ? "No " + (currentFilter === "good" ? "good lies" : "hard-luck lies") + " yet."
         : (currentTab === "mine"
             ? "No lies of yours yet — snap one and post the ruling."
             : "Be the first — snap a lie and post the ruling.");
@@ -788,24 +827,21 @@
     return await r.json();
   }
 
-  // ============ Result-page stamp control ============
-  let suggestedKey = "fair_cop";
-  let myStamp = null; // the golfer's confirmed stamp — the only one that goes on the share image
+  // ============ Result-page ratings ============
+  let myStamp = null; // luck "1".."5" — drawn on the share image once set
+  let myCall = null;  // good_call / bad_call
 
-  function renderStampBtn() {
-    const btn = $("stampBtn");
-    btn.classList.remove("stamped", "tone-green", "tone-neutral", "tone-red");
-    if (myStamp) {
-      btn.textContent = STAMPS[myStamp].label;
-      btn.classList.add("stamped", STAMPS[myStamp].tone);
-      btn.setAttribute("aria-pressed", "true");
-      $("stampNote").textContent = "Tap to un-stamp";
-    } else {
-      btn.textContent = STAMPS[suggestedKey].label + "?";
-      btn.classList.add(STAMPS[suggestedKey].tone);
-      btn.setAttribute("aria-pressed", "false");
-      $("stampNote").textContent = "Rate the ruling";
-    }
+  $("rateGood").innerHTML = ICON_CUP + "Good call";
+  $("rateBad").innerHTML = ICON_SPLASH + "Bad call";
+
+  function renderRateSlider() {
+    const s = $("rateSlider");
+    s.value = myStamp || "3";
+    s.classList.toggle("unrated", !myStamp);
+    [["rateGood", "good_call"], ["rateBad", "bad_call"]].forEach(([id, key]) => {
+      $(id).classList.toggle("on", myCall === key);
+      $(id).setAttribute("aria-pressed", String(myCall === key));
+    });
   }
 
   async function syncStamp(stamp) {
@@ -820,44 +856,25 @@
     } catch (e) { return false; }
   }
 
-  function applyStamp(key) {
+  $("rateSlider").addEventListener("change", () => {
     const prev = myStamp;
-    myStamp = key;
-    renderStampBtn();
-    const btn = $("stampBtn");
-    if (!reduced) {
-      btn.classList.remove("just-stamped"); void btn.offsetWidth;
-      btn.classList.add("just-stamped");
-      if (navigator.vibrate) navigator.vibrate(15);
-    }
-    syncStamp(key).then((ok) => { if (!ok) { myStamp = prev; renderStampBtn(); } });
-  }
-
-  function clearStamp() {
-    const prev = myStamp;
-    myStamp = null;
-    renderStampBtn();
-    syncStamp("clear").then((ok) => { if (!ok) { myStamp = prev; renderStampBtn(); } });
-  }
-
-  $("stampBtn").addEventListener("click", () => { myStamp ? clearStamp() : applyStamp(suggestedKey); });
-  $("stampMore").addEventListener("click", () => {
-    const tray = $("stampTray");
-    const open = !tray.hidden;
-    tray.hidden = open;
-    $("stampMore").setAttribute("aria-expanded", String(!open));
+    myStamp = String($("rateSlider").value);
+    renderRateSlider();
+    if (!reduced && navigator.vibrate) navigator.vibrate(15);
+    syncStamp(myStamp).then((ok) => { if (!ok) { myStamp = prev; renderRateSlider(); } });
   });
-  // Build the tray once.
-  Object.entries(STAMPS).forEach(([key, s]) => {
-    const b = document.createElement("button");
-    b.className = "pick " + s.tone;
-    b.innerHTML = s.icon + " " + esc(s.label);
-    b.addEventListener("click", () => {
-      applyStamp(key);
-      $("stampTray").hidden = true;
-      $("stampMore").setAttribute("aria-expanded", "false");
+
+  [["rateGood", "good_call"], ["rateBad", "bad_call"]].forEach(([id, key]) => {
+    $(id).addEventListener("click", () => {
+      const prev = myCall;
+      const clearing = myCall === key;
+      myCall = clearing ? null : key;
+      renderRateSlider();
+      if (!reduced && !clearing && navigator.vibrate) navigator.vibrate(15);
+      syncStamp(clearing ? "clear" : key).then((ok) => {
+        if (!ok) { myCall = prev; renderRateSlider(); }
+      });
     });
-    $("stampTray").appendChild(b);
   });
 
   // ============ Result render ============
@@ -871,13 +888,11 @@
     $("postBtn").classList.toggle("flex", !offTopic && !!data.id);
     $("postBtn").textContent = "Post to the feed";
     $("postBtn").disabled = false;
-    // Stamp control: fresh suggestion per ruling, nothing confirmed yet.
-    suggestedKey = STAMPS[data.suggested_stamp] ? data.suggested_stamp : "fair_cop";
+    // Ratings: fresh per ruling, nothing selected yet.
     myStamp = null;
+    myCall = null;
     $("stampRow").classList.toggle("hidden", offTopic || !data.id);
-    $("stampTray").hidden = true;
-    $("stampMore").setAttribute("aria-expanded", "false");
-    renderStampBtn();
+    renderRateSlider();
     const stake = offTopic ? STAKE.unclear : (STAKE[data.ruling_type] || STAKE.unclear);
     $("stake").style.backgroundColor = stake.bar;
     $("rulingType").textContent = offTopic ? "Not a golf lie" : stake.label;
@@ -1092,27 +1107,24 @@
     const vy = photo ? 770 : 300;
     const vh = verdictStamp(x, verdict, ink, W / 2, vy, -3.5, W - 2 * P);
 
-    // The golfer's confirmed stamp (never the app's unconfirmed suggestion):
-    // slapped across the photo's top-right corner like a real rubber stamp.
-    if (stampSel && STAMPS[stampSel]) {
-      const s = STAMPS[stampSel];
-      const label = s.label.toUpperCase();
+    // The golfer's own luck rating, slapped across the photo's top-right corner.
+    if (stampSel && /^[1-5]$/.test(String(stampSel))) {
+      const v = parseInt(stampSel, 10);
+      const label = LUCK_NAMES[v];
+      const ink = luckBucket(v).ink;
       x.font = "700 54px 'Oswald', sans-serif";
       const w = x.measureText(label).width + 50;
-      if (photo) inkStamp(x, label, s.ink, W - P - w / 2, 248, 6, 54, "rgba(255,255,255,.6)");
-      else inkStamp(x, label, s.ink, W - P - w / 2, H - 250, 6, 54, null);
+      if (photo) inkStamp(x, label, ink, W - P - w / 2, 248, 6, 54, "rgba(255,255,255,.6)");
+      else inkStamp(x, label, ink, W - P - w / 2, H - 250, 6, 54, null);
     }
 
-    // The crowd's verdict: top stamps with counts, drawn as small ink stamps.
-    const top = counts
-      ? STAMP_KEYS.map((k) => [k, counts[k] || 0]).filter(([, n]) => n > 0)
-          .sort((a, b) => b[1] - a[1]).slice(0, 3)
-      : [];
+    // The crowd's read: average luck rating, drawn as one small ink stamp.
+    const stats = counts ? luckStats(counts) : null;
 
     // Text stack: full commentary, then rule. The stamp tally row is RESERVED —
     // anchored above the footer so it can never be squeezed off the card.
     x.textBaseline = "top";
-    const floor = top.length ? H - 244 : H - 190;  // content stays above this
+    const floor = stats ? H - 244 : H - 190;  // content stays above this
     let ty = vy + vh / 2 + 34;
     if (data.explanation && ty < floor - 44) {
       x.fillStyle = "#1B2420"; x.font = "400 34px 'Karla', sans-serif";
@@ -1122,25 +1134,21 @@
       }
       ty += 12;
     }
-    if (data.rule_number && ty + 34 <= (top.length ? H - 218 : H - 190)) {
+    if (data.rule_number && ty + 34 <= (stats ? H - 218 : H - 190)) {
       x.fillStyle = "#0FA958"; x.font = "600 30px 'IBM Plex Mono', monospace";
       x.fillText("R&A RULE " + data.rule_number + " · RULES OF GOLF", P, ty);
     }
-    if (top.length) {
+    if (stats) {
       const tyT = H - 214;  // fixed row, always visible above the dashed rule
-      let cx = P;
-      for (const [k, n] of top) {
-        const s = STAMPS[k];
-        const label = s.label.toUpperCase();
-        x.font = "700 34px 'Oswald', sans-serif";
-        const w = x.measureText(label).width + 32;
-        inkStamp(x, label, s.ink, cx + w / 2, tyT + 26, -2, 34, null);
-        x.fillStyle = "#65706A"; x.font = "600 28px 'IBM Plex Mono', monospace";
-        x.textAlign = "left"; x.textBaseline = "middle";
-        x.fillText("×" + n, cx + w + 10, tyT + 28);
-        cx += w + 10 + x.measureText("×" + n).width + 34;
-        x.textBaseline = "top";
-      }
+      const b = luckBucket(stats.avg);
+      const label = b.label.toUpperCase();
+      x.font = "700 34px 'Oswald', sans-serif";
+      const w = x.measureText(label).width + 32;
+      inkStamp(x, label, b.ink, P + w / 2, tyT + 26, -2, 34, null);
+      x.fillStyle = "#65706A"; x.font = "600 28px 'IBM Plex Mono', monospace";
+      x.textAlign = "left"; x.textBaseline = "middle";
+      x.fillText(stats.avg.toFixed(1) + "/5 · CROWD ×" + stats.total, P + w + 12, tyT + 28);
+      x.textBaseline = "top";
     }
 
     // Footer: dashed scorecard rule, then the pitch.

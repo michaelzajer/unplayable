@@ -109,7 +109,7 @@ def main() -> None:
                      "Try a clearer --note and rerun.")
         changes = {k: result[k] for k in ("verdict", "ruling_type", "situation",
                                           "explanation", "rule_number", "rule_url",
-                                          "confidence", "suggested_stamp")}
+                                          "confidence")}
         changes["model_used"] = result.get("model_used")
         if args.note is not None:
             changes["user_note"] = args.note.strip()[:280]

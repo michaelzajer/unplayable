@@ -9,8 +9,8 @@ live feed would break the app's own no-fake-votes rule.
 
 Usage (from the project root, venv active):
   python scripts/seed_votes.py --list                 # show shared lies and their ids
-  python scripts/seed_votes.py --id <sub_id> --brutal 12 --cooked 5 --stiff 3
-  python scripts/seed_votes.py --random 30            # scatter 30 votes over all shared lies
+  python scripts/seed_votes.py --id <sub_id> --5 8 --4 3   (5 = hard luck)
+  python scripts/seed_votes.py --random 30            # scatter 30 ratings over all shared lies
   python scripts/seed_votes.py --clear                # remove every seeded vote
 """
 
@@ -91,8 +91,8 @@ def main() -> None:
             ids = [args.id] if args.id else shared_ids(conn)
             if not ids:
                 sys.exit("No shared lies to stamp — post one to the feed first.")
-            # Weighted towards the cursed end: banter feeds skew dramatic.
-            weights = {"gift": 1, "fluke": 1, "fair_cop": 2, "stiff": 3, "cooked": 3, "brutal": 4}
+            # Most golfers back the call; a healthy minority dispute it.
+            weights = {"1": 1, "2": 1, "3": 2, "4": 3, "5": 3}
             for _ in range(args.random):
                 seed(conn, random.choice(ids),
                      random.choices(list(weights), weights=weights.values())[0], 1)
