@@ -44,36 +44,36 @@ share page, and drawn onto the share image (with a second low-alpha stroke pass 
 bleed). Verdicts are stamp-length by prompt: 2–4 words, e.g. "UNPLAYABLE — ONE STROKE".
 Green ink favourable, red unfavourable, pencil/flag for neutral/unclear.
 
-## Rating: luck slider + call thumbs
+## Rating: call chips + share
 
-TWO independent ratings per golfer per lie:
-- LUCK (the lie): 5-notch slider directly UNDER the photo, above the commentary.
-  Green "Good lie" -> amber -> red "Hard luck". Thumb hollow until rated, then
-  solid; crowd line between the labels reads "CROWD 3.8/5 · ×12" / "SLIDE TO RATE".
-  Re-sliding replaces; no un-rate. Stored as "1".."5".
-- CALL (the ruling): small "Good call" (green, cup icon) / "Bad call" (red, splash
-  icon) buttons in the bottom row next to Post-to-feed/Share. Tap to rate, tap
-  again to clear, switching replaces. Stored as good_call/bad_call.
+ONE rating per golfer per lie — the CALL (the ruling): quiet "Good call" (green,
+cup icon) / "Bad call" (red, splash icon) underlined text actions (`.linkact` with
+tone classes), not boxed buttons. Muted (75% opacity) until stamped; selected =
+full ink, bold, thick underline. Tap to rate, tap again to clear, switching
+replaces. Stored as good_call/bad_call. Vote rows share one table; one row per
+kind per (submission, session), enforced by same-kind replacement.
 
-Both appear on feed cards and the result card. Vote rows share one table; one row
-per kind per (submission, session), enforced by same-kind replacement.
+The luck slider was removed (unused). Legacy luck votes ("1".."5") remain in the
+table and still drive the luck buckets, feed filters and share-image crowd stamp
+where present; no new luck votes are collected.
 
-- Average luck buckets: <1.8 Good lie, <2.6 Not bad, <3.4 Fair, <4.2 Rough, else
-  Hard luck (green/green/amber/red/red ink) — used on pills and the share image.
-- "The Feed" tab sorts hardest luck first (weight = notch - 1; call votes weigh 0);
-  the top lie wears a red "HARDEST LUCK GOING ROUND" banner.
-- Filter row: All / Good lies (avg <= 2.5) / Hard luck (avg >= 3.5).
-- Share image: golfer's own luck rating as corner stamp; crowd average as a small
-  ink stamp + "4.2/5 · CROWD ×12". Share page: luck pill + call pills.
+- On feed cards the action row sits directly UNDER the photo (where the slider
+  was): call chips on the left, Post-to-feed / Share on the right. Share is a
+  quiet underlined mono link with an icon (`.linkact`), not a boxed button.
+- On the result card the call chips and Share sit on one row; "Post to the feed"
+  stays as the primary full-width button above it.
+- Average luck buckets (legacy): <1.8 Good lie, <2.6 Not bad, <3.4 Fair, <4.2
+  Rough, else Hard luck — still used on pills and share images where votes exist.
+- No filter row — the feed always shows everything for the selected tab.
 - My lies: unshared lies get a solid "Post to feed" button next to Share.
 
 ## Interaction rules
 
-- Touch targets minimum 44px. `aria-pressed`/`aria-expanded`/`aria-selected` maintained;
-  the slider exposes "Rate the lie: 1 good lie to 5 hard luck". `prefers-reduced-motion` respected —
-  no rotation or animation when set. Focus-visible ring in `--flag`.
-- Button copy: "Get the ruling" (capture), "Post to the feed" above "Share" on the
-  result card (post is primary), "Share" never "Share the slip".
+- Touch targets minimum 44px for primary actions; card chips/links minimum 32px.
+  `aria-pressed`/`aria-expanded`/`aria-selected` maintained. `prefers-reduced-motion`
+  respected — no rotation or animation when set. Focus-visible ring in `--flag`.
+- Button copy: "Get the ruling" (capture), "Post to the feed" is primary on the
+  result card, "Share" never "Share the slip".
 - After posting, the app returns to the feed automatically.
 - The capture card header carries the loop: "01 SNAP · 02 RATE · 03 SHARE"
   (snap the lie, rate the ruling, share the banter).

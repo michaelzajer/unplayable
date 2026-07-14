@@ -369,6 +369,15 @@ def vote(
     return {"ok": True}
 
 
+@app.get("/api/export/ratings")
+def export_ratings(_: None = Depends(require_access_code)):
+    """Rulings joined with their good_call/bad_call tallies, newest first.
+    Model-improvement data: pull with the access code header, e.g.
+      curl -H "X-Access-Code: <code>" https://<host>/api/export/ratings
+    """
+    return db.export_call_ratings()
+
+
 @app.post("/api/post-to-feed")
 def post_to_feed(
     submission_id: str = Form(...),

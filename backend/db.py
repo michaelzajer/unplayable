@@ -303,6 +303,40 @@ def get_stamp_counts(submission_id: str) -> dict:
     return counts
 
 
+def export_call_ratings() -> list[dict]:
+    """Every ruling with its good_call/bad_call tallies — training signal for
+    improving the model. Rulings with zero votes are included so the absence
+    of a rating is visible too. Newest first."""
+    s, v = submission, vote
+    with engine.connect() as conn:
+        rows = conn.execute(
+            select(
+                s.c.id, s.c.created_at, s.c.user_note, s.c.situation,
+                s.c.ruling_type, s.c.verdict, s.c.explanation,
+                s.c.rule_number, s.c.rule_url, s.c.confidence,
+                s.c.model_used, s.c.shared,
+            ).order_by(s.c.created_at.desc())
+        ).mappings().all()
+        tq = (
+            select(v.c.submission_id, v.c.stamp, func.count(v.c.id))
+            .where(v.c.stamp.in_(tuple(CALL_SET)))
+            .group_by(v.c.submission_id, v.c.stamp)
+        )
+        tallies: dict = {}
+        for sid, stamp, n in conn.execute(tq):
+            tallies.setdefault(sid, {})[stamp] = n
+    out = []
+    for r in rows:
+        rec = dict(r)
+        if rec.get("created_at") is not None:
+            rec["created_at"] = rec["created_at"].isoformat()
+        t = tallies.get(rec["id"], {})
+        rec["good_call"] = t.get("good_call", 0)
+        rec["bad_call"] = t.get("bad_call", 0)
+        out.append(rec)
+    return out
+
+
 def insert_feedback(rec: dict) -> str:
     fid = str(uuid.uuid4())
     with engine.begin() as conn:

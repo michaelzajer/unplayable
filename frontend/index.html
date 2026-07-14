@@ -91,9 +91,6 @@
     min-width:0;overflow:hidden;
   }
   .rate svg{flex:none;width:16px;height:16px;}
-  /* compact variant for the filter row */
-  .rate-sm{min-height:34px;font-size:.66rem;padding:0 .4rem;border-radius:8px;gap:.3rem;}
-  .rate-sm svg{width:13px;height:13px;}
   .rate:active{transform:scale(.96);}
   .rate .n{font-family:'IBM Plex Mono',monospace;font-size:.72rem;opacity:.85;}
   .rate .lbl{overflow:hidden;text-overflow:ellipsis;}
@@ -106,55 +103,44 @@
     60%{transform:scale(.94);}
     100%{transform:scale(1);}
   }
-  .rate.just-stamped, .mini.just-stamped{animation:chipthunk .25s ease-out;}
+  .rate.just-stamped, .mini.just-stamped, .linkact.just-stamped{animation:chipthunk .25s ease-out;}
   .tone-green{color:var(--ink-green);}
   .tone-red{color:var(--ink-red);}
   .tone-ink{color:var(--pencil);}
 
-  /* the luck slider: green good lie -> amber -> red hard luck, 5 notches */
-  input.luck{
-    -webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:999px;
-    background:linear-gradient(90deg,#0FA958 0%,#0FA958 30%,#C28400 45%,#C28400 55%,#E03131 70%,#E03131 100%);
-    outline-offset:4px;margin:8px 0 2px;
-  }
-  input.luck::-webkit-slider-thumb{
-    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
-    background:#FFFFFF;border:3px solid var(--pencil);
-    box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;
-  }
-  input.luck::-moz-range-thumb{
-    width:22px;height:22px;border-radius:50%;
-    background:#FFFFFF;border:3px solid var(--pencil);
-    box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;
-  }
-  /* hollow thumb until this golfer has rated */
-  input.luck.unrated::-webkit-slider-thumb{border-color:var(--pencil-soft);background:#F4F8FB;}
-  input.luck.unrated::-moz-range-thumb{border-color:var(--pencil-soft);background:#F4F8FB;}
-  .luck-labels{
-    display:flex;justify-content:space-between;align-items:baseline;
-    font-family:'IBM Plex Mono',monospace;font-size:.58rem;
-    letter-spacing:.04em;text-transform:uppercase;
-  }
-  .suggest-note{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.05em;color:var(--pencil-soft);text-transform:uppercase;}
-
-  /* small card-action buttons (Share, Post to feed) — blue = app action */
+  /* small card-action buttons (Post to feed, vote chips) — blue = app action */
   .mini{
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.05em;
-    text-transform:uppercase;font-size:.7rem;line-height:1;white-space:nowrap;
-    min-height:38px;padding:0 .7rem;border-radius:8px;
+    text-transform:uppercase;font-size:.62rem;line-height:1;white-space:nowrap;
+    min-height:32px;padding:0 .55rem;border-radius:7px;
     border:2px solid var(--fairway);color:var(--fairway);background:var(--card);
-    display:inline-flex;align-items:center;gap:.35rem;
+    display:inline-flex;align-items:center;gap:.3rem;
     transition:transform .08s ease;
   }
-  .mini svg{flex:none;width:13px;height:13px;}
+  .mini svg{flex:none;width:11px;height:11px;}
   .mini:active{transform:scale(.95);}
   .mini.solid{background:var(--fairway);color:var(--card);}
   .mini:disabled{opacity:.65;}
   .mini .n{font-family:'IBM Plex Mono',monospace;font-size:.66rem;opacity:.85;}
-  .mini.tone-green{border-color:var(--ink-green);color:var(--ink-green);}
-  .mini.tone-red{border-color:var(--ink-red);color:var(--ink-red);}
-  .mini.on.tone-green{background:var(--ink-green);color:#FFFFFF;}
-  .mini.on.tone-red{background:var(--ink-red);color:#FFFFFF;}
+
+  /* quiet link-style action: lighter than a button, still an obvious tap target */
+  .linkact{
+    font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.05em;
+    text-transform:uppercase;white-space:nowrap;
+    color:#1780B8;text-decoration:underline;text-underline-offset:4px;
+    background:none;border:none;min-height:32px;padding:0 .25rem;
+    display:inline-flex;align-items:center;gap:.3rem;
+    transition:transform .08s ease;
+  }
+  .linkact svg{flex:none;width:13px;height:13px;}
+  .linkact:active{transform:scale(.95);}
+  .linkact:disabled{opacity:.65;}
+  .linkact .n{font-size:.62rem;opacity:.85;}
+  /* good/bad call as quiet toned links: muted until stamped, then bold ink.
+     Darker inks than the stamps so the thin mono text keeps its contrast. */
+  .linkact.tone-green{color:#0B7A40;opacity:.8;}
+  .linkact.tone-red{color:#B32424;opacity:.8;}
+  .linkact.on{opacity:1;font-weight:700;text-decoration-thickness:3px;}
 
   .tab{
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;
@@ -207,9 +193,6 @@
 
     <!-- ============ FEED VIEW (home) ============ -->
     <div id="feedView" class="space-y-4">
-
-      <!-- Filter by rating: shows lies where that rating leads the count -->
-      <div id="filters" class="grid gap-1.5" style="grid-template-columns:repeat(3,minmax(0,1fr));" role="group" aria-label="Filter by rating"></div>
 
       <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
       <div id="empty" class="hidden text-center py-12">
@@ -293,19 +276,16 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
             </a>
 
-            <!-- Rate the lie + the call -->
-            <div id="stampRow" class="hidden mt-4 pt-4 border-t border-ink/10">
-              <div class="luck-labels">
-                <span style="color:#0FA958;">Good lie</span>
-                <span class="suggest-note">Rate the lie</span>
-                <span style="color:#E03131;">Hard luck</span>
+            <!-- Rate the call + share -->
+            <div id="stampRow" class="hidden mt-4 pt-4 border-t border-ink/10 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-3" role="group" aria-label="Rate the call">
+                <button id="rateGood" class="linkact tone-green" aria-pressed="false"></button>
+                <button id="rateBad" class="linkact tone-red" aria-pressed="false"></button>
               </div>
-              <input id="rateSlider" type="range" class="luck unrated" min="1" max="5" step="1" value="3"
-                aria-label="Rate the lie: 1 good lie to 5 hard luck" />
-              <div class="flex items-center gap-1.5 mt-3" role="group" aria-label="Rate the call">
-                <button id="rateGood" class="mini tone-green" aria-pressed="false"></button>
-                <button id="rateBad" class="mini tone-red" aria-pressed="false"></button>
-              </div>
+              <button id="shareBtn" type="button" class="linkact hidden" aria-label="Share this ruling">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
+                Share
+              </button>
             </div>
 
             <div id="confidenceRow" class="mt-4 flex items-center gap-2 text-xs text-ink/45">
@@ -320,12 +300,6 @@
             <button id="postBtn" type="button"
               class="hidden mt-4 w-full items-center justify-center gap-2 border border-turf/20 text-turf font-display font-semibold text-lg rounded-lg py-2.5 active:scale-[.99] transition">
               Post to the feed
-            </button>
-
-            <button id="shareBtn" type="button"
-              class="hidden mt-2 w-full items-center justify-center gap-2 text-turf/70 hover:text-turf font-display font-semibold text-base py-1.5 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
-              Share
             </button>
 
             <!-- Low-confidence describe-instead path -->
@@ -384,7 +358,8 @@
     play_as_it_lies: "stamp-red", unclear: "stamp-neutral",
   };
 
-  // Rating v3: a 5-notch luck slider on THE LIE. 1 = good lie, 5 = hard luck.
+  // Rating: good call / bad call on THE RULING. Luck names/buckets remain for
+  // legacy luck votes still shown in filters and on share images.
   const ICON = (d) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const ICON_CUP = ICON('<path d="M12 3v9"/><path d="M12 3l5.5 2L12 7"/><path d="M4 19c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/>');
   const ICON_SPLASH = ICON('<circle cx="12" cy="7" r="2.6"/><path d="M3 17.5c1.8-1.4 3.7-1.4 5.5 0s3.7 1.4 5.5 0 3.7-1.4 5.5 0"/>');
@@ -470,7 +445,6 @@
   function card(item, isWorst) {
     const el = document.createElement("article");
     el.className = "slip overflow-hidden";
-    const myLuck = /^[1-5]$/.test(String(item.my_luck)) ? String(item.my_luck) : null;
     const myCall = (item.my_call === "good_call" || item.my_call === "bad_call") ? item.my_call : null;
     const counts = item.stamp_counts || {};
     const vTone = VERDICT_TONE[item.ruling_type] || "stamp-neutral";
@@ -503,37 +477,28 @@
       <div class="relative">
         ${img}
       </div>
-      <div class="px-3 pt-2">
-        <div class="luck-labels">
-          <span style="color:var(--ink-green);">Good lie</span>
-          <span data-crowd style="color:var(--pencil-soft);"></span>
-          <span style="color:var(--ink-red);">Hard luck</span>
-        </div>
-        <input type="range" class="luck unrated" min="1" max="5" step="1" value="3"
-          aria-label="Rate the lie: 1 good lie to 5 hard luck" />
-      </div>
-      <div class="px-3 pt-2 pb-1">
-        <p class="text-[15px] leading-snug">${esc(item.explanation || item.situation || "")}</p>
-        ${ruleLink}
-      </div>
-      <div class="px-3 pt-1 pb-3 flex items-center justify-between gap-2" data-votes>
-        <div class="flex items-center gap-1.5" role="group" aria-label="Rate the call">
-          <button class="mini tone-green" data-chip="good_call" aria-pressed="false">
+      <div class="px-3 pt-2 flex items-center justify-between gap-2" data-votes>
+        <div class="flex items-center gap-3" role="group" aria-label="Rate the call">
+          <button class="linkact tone-green" data-chip="good_call" aria-pressed="false">
             ${ICON_CUP}Good call<span class="n" data-n="good_call"></span></button>
-          <button class="mini tone-red" data-chip="bad_call" aria-pressed="false">
+          <button class="linkact tone-red" data-chip="bad_call" aria-pressed="false">
             ${ICON_SPLASH}Bad call<span class="n" data-n="bad_call"></span></button>
         </div>
         <div class="flex items-center gap-2">
           ${!item.shared ? `<button class="mini solid" data-post>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
             Post to feed</button>` : ""}
-          <button class="mini" data-share aria-label="Share this lie">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
+          <button class="linkact" data-share aria-label="Share this lie">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/></svg>
             Share</button>
         </div>
+      </div>
+      <div class="px-3 pt-2 pb-3">
+        <p class="text-[15px] leading-snug">${esc(item.explanation || item.situation || "")}</p>
+        ${ruleLink}
       </div>`;
 
-    wireVotes(el, item, myLuck, myCall, counts);
+    wireVotes(el, item, myCall, counts);
     el.querySelector("[data-share]").addEventListener("click", () => shareLie(item));
     const postBtn = el.querySelector("[data-post]");
     if (postBtn) {
@@ -557,21 +522,12 @@
     return el;
   }
 
-  function wireVotes(el, item, myLuck, myCall, counts) {
-    const slider = el.querySelector("input.luck");
-    const crowdEl = el.querySelector("[data-crowd]");
+  function wireVotes(el, item, myCall, counts) {
     const callBtns = el.querySelectorAll("[data-chip]");
     const tallies = { ...counts };
-    let luck = myLuck;  // "1".."5" or null
     let call = myCall;  // good_call / bad_call / null
 
     const render = () => {
-      const stats = luckStats(tallies);
-      crowdEl.textContent = stats
-        ? "CROWD " + stats.avg.toFixed(1) + "/5 · ×" + stats.total
-        : "SLIDE TO RATE";
-      slider.value = luck || "3";
-      slider.classList.toggle("unrated", !luck);
       callBtns.forEach((b) => {
         const k = b.dataset.chip;
         const n = tallies[k] || 0;
@@ -593,22 +549,6 @@
       }
       return r.ok;
     };
-
-    slider.addEventListener("change", () => {
-      const v = String(slider.value);
-      const prev = luck;
-      if (prev) tallies[prev] = Math.max(0, (tallies[prev] || 0) - 1);
-      luck = v;
-      tallies[v] = (tallies[v] || 0) + 1;
-      render();
-      if (!reduced && navigator.vibrate) navigator.vibrate(15);
-      sync(v).then((ok) => { if (!ok) {
-        tallies[v] = Math.max(0, (tallies[v] || 0) - 1);
-        luck = prev;
-        if (prev) tallies[prev] = (tallies[prev] || 0) + 1;
-        render();
-      }});
-    });
 
     callBtns.forEach((b) => {
       b.addEventListener("click", () => {
@@ -666,55 +606,17 @@
     } catch (e) { /* dismissed */ }
   }
 
-  // --- Stamp filter: shows lies where the chosen stamp leads the count ---
-  let currentFilter = "";
   let feedItems = [];
-
-  function bucketOf(item) {
-    const stats = luckStats(item.stamp_counts);
-    if (!stats) return null;
-    return stats.avg <= 2.5 ? "good" : stats.avg >= 3.5 ? "hard" : "mid";
-  }
-
-  function buildFilters() {
-    const bar = $("filters");
-    const mk = (key, label, icon, tone) => {
-      const b = document.createElement("button");
-      b.className = "rate rate-sm " + tone;
-      b.dataset.filter = key;
-      b.innerHTML = (icon || "") + '<span class="lbl">' + label + "</span>";
-      b.addEventListener("click", () => {
-        currentFilter = currentFilter === key ? "" : key; // tap again to clear
-        bar.querySelectorAll(".rate").forEach((c) =>
-          c.classList.toggle("stamped", c.dataset.filter === currentFilter));
-        renderFeed();
-      });
-      bar.appendChild(b);
-    };
-    mk("", "All", "", "tone-ink");
-    mk("good", "Good lies",
-       ICON('<path d="M12 3v9"/><path d="M12 3l5.5 2L12 7"/><path d="M4 19c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/>'),
-       "tone-green");
-    mk("hard", "Hard luck",
-       ICON('<circle cx="12" cy="7" r="2.6"/><path d="M3 17.5c1.8-1.4 3.7-1.4 5.5 0s3.7 1.4 5.5 0 3.7-1.4 5.5 0"/>'),
-       "tone-red");
-    bar.querySelector('[data-filter=""]').classList.add("stamped");
-  }
-  buildFilters();
 
   function renderFeed() {
     const list = $("list");
     list.innerHTML = "";
     $("empty").classList.add("hidden");
-    const items = currentFilter
-      ? feedItems.filter((i) => bucketOf(i) === currentFilter)
-      : feedItems;
+    const items = feedItems;
     if (!items.length) {
-      $("emptyHint").textContent = currentFilter
-        ? "No " + (currentFilter === "good" ? "good lies" : "hard-luck lies") + " yet."
-        : (currentTab === "mine"
-            ? "No lies of yours yet — snap one and post the ruling."
-            : "Be the first — snap a lie and post the ruling.");
+      $("emptyHint").textContent = currentTab === "mine"
+        ? "No lies of yours yet — snap one and post the ruling."
+        : "Be the first — snap a lie and post the ruling.";
       $("empty").classList.remove("hidden");
       return;
     }
@@ -833,16 +735,12 @@
   }
 
   // ============ Result-page ratings ============
-  let myStamp = null; // luck "1".."5" — drawn on the share image once set
   let myCall = null;  // good_call / bad_call
 
   $("rateGood").innerHTML = ICON_CUP + "Good call";
   $("rateBad").innerHTML = ICON_SPLASH + "Bad call";
 
-  function renderRateSlider() {
-    const s = $("rateSlider");
-    s.value = myStamp || "3";
-    s.classList.toggle("unrated", !myStamp);
+  function renderCallButtons() {
     [["rateGood", "good_call"], ["rateBad", "bad_call"]].forEach(([id, key]) => {
       $(id).classList.toggle("on", myCall === key);
       $(id).setAttribute("aria-pressed", String(myCall === key));
@@ -861,23 +759,15 @@
     } catch (e) { return false; }
   }
 
-  $("rateSlider").addEventListener("change", () => {
-    const prev = myStamp;
-    myStamp = String($("rateSlider").value);
-    renderRateSlider();
-    if (!reduced && navigator.vibrate) navigator.vibrate(15);
-    syncStamp(myStamp).then((ok) => { if (!ok) { myStamp = prev; renderRateSlider(); } });
-  });
-
   [["rateGood", "good_call"], ["rateBad", "bad_call"]].forEach(([id, key]) => {
     $(id).addEventListener("click", () => {
       const prev = myCall;
       const clearing = myCall === key;
       myCall = clearing ? null : key;
-      renderRateSlider();
+      renderCallButtons();
       if (!reduced && !clearing && navigator.vibrate) navigator.vibrate(15);
       syncStamp(clearing ? "clear" : key).then((ok) => {
-        if (!ok) { myCall = prev; renderRateSlider(); }
+        if (!ok) { myCall = prev; renderCallButtons(); }
       });
     });
   });
@@ -894,10 +784,9 @@
     $("postBtn").textContent = "Post to the feed";
     $("postBtn").disabled = false;
     // Ratings: fresh per ruling, nothing selected yet.
-    myStamp = null;
     myCall = null;
     $("stampRow").classList.toggle("hidden", offTopic || !data.id);
-    renderRateSlider();
+    renderCallButtons();
     const stake = offTopic ? STAKE.unclear : (STAKE[data.ruling_type] || STAKE.unclear);
     $("stake").style.backgroundColor = stake.bar;
     $("rulingType").textContent = offTopic ? "Not a golf lie" : stake.label;
@@ -1171,7 +1060,7 @@
     const btn = $("shareBtn");
     btn.disabled = true;
     try {
-      const blob = await buildShareImage(lastResult, myStamp, null, true);
+      const blob = await buildShareImage(lastResult, null, null, true);
       const file = new File([blob], "unplayable.jpg", { type: "image/jpeg" });
       const url = location.origin + "/r/" + lastResult.id;
       const text = (lastResult.verdict || "My golf ruling")
