@@ -29,6 +29,9 @@ __OG_IMAGE_TW__
 <style>
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   html,body{overflow-x:hidden;}
+  /* Mobile-first type scale: larger base on phones; rem sizes follow. */
+  html{font-size:17px;}
+  @media (min-width: 640px){ html{font-size:16px;} }
   body { background-color:#F4F8FB; }
   input, textarea, select { font-size:16px !important; }
   .font-display { letter-spacing:.04em; }
@@ -70,7 +73,7 @@ __OG_IMAGE_TW__
           <div class="font-display font-semibold uppercase tracking-widest text-xs" style="color:__STAKE__">__LABEL__</div>
           <h1 class="stamp text-lg mt-3" style="color:__STAKE__">__VERDICT__</h1>
           <p class="text-sm text-ink/60 mt-1">__SITUATION__</p>
-          <p class="text-[15px] mt-3 leading-relaxed">__EXPLANATION__</p>
+          <p class="text-base mt-3 leading-relaxed">__EXPLANATION__</p>
           __STAMP_BLOCK__
           __RULE_BLOCK__
         </div>
