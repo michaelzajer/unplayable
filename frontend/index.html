@@ -189,6 +189,21 @@
     </div>
   </div>
 
+  <!-- First-visit welcome: shown once, remembered in localStorage -->
+  <div id="welcome" class="hidden fixed inset-0 z-40 flex items-center justify-center px-6" style="background:rgba(27,45,79,.96);">
+    <div class="bg-chalk rounded-2xl shadow-lg border border-ink/10 w-full max-w-sm p-6 text-center">
+      <div class="font-display font-bold text-3xl text-turf leading-none">Golf<span style="color:#C8102E;">Rules</span><span style="color:#65706A;">.pro</span></div>
+      <p class="mt-3 text-[15px] leading-relaxed text-ink/80">Photograph your ball's lie and get the ruling in seconds.</p>
+      <p class="mt-2 text-sm text-ink/60">Rate the calls on the feed. Share the ones worth arguing about.</p>
+      <div class="mt-4 font-mono text-[11px] tracking-wide" style="color:#65706A;">01 SNAP &nbsp;·&nbsp; 02 RATE &nbsp;·&nbsp; 03 SHARE</div>
+      <button id="welcomeGo"
+        class="mt-5 w-full bg-turf text-chalk font-display font-semibold text-xl tracking-wide rounded-lg py-3 active:scale-[.99] transition">
+        Get started
+      </button>
+      <p class="mt-3 text-xs text-ink/40">A guide, not the match committee.</p>
+    </div>
+  </div>
+
   <main id="app" class="hidden max-w-md mx-auto px-4 pt-4">
 
     <!-- ============ FEED VIEW (home) ============ -->
@@ -205,7 +220,11 @@
 
     <!-- ============ SNAP VIEW (capture + result) ============ -->
     <div id="snapView" class="hidden space-y-5">
-      <button id="backToFeed" class="mono text-xs underline underline-offset-4 min-h-[44px]" style="color:var(--pencil-soft);">&larr; Back to the feed</button>
+      <div class="flex items-center justify-between">
+        <button id="backToFeed" class="mono text-xs underline underline-offset-4 min-h-[44px]" style="color:var(--pencil-soft);">&larr; Back to the feed</button>
+        <button id="closeSnap" aria-label="Close and go to the feed"
+          class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-xl" style="color:var(--pencil-soft);">✕</button>
+      </div>
 
       <!-- Capture card: they tapped Snap, so get straight to the two choices -->
       <section class="bg-chalk rounded-2xl shadow-sm border border-ink/10 overflow-hidden">
@@ -232,10 +251,11 @@
             placeholder="Add a note (optional) — e.g. up against a sprinkler head"
             class="w-full rounded-lg border border-ink/15 bg-paper/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fairway/40" />
 
-          <!-- Optional round details: course, hole, date -->
+          <!-- Round details: course, hole, date — prominent, one entry per round -->
           <button id="detailsToggle" type="button" aria-expanded="false"
-            class="mono text-xs underline underline-offset-4 min-h-[44px]" style="color:#65706A;">
-            + Add course, hole &amp; date (optional)
+            class="w-full flex items-center justify-between gap-2 rounded-lg border border-turf/30 bg-turf/5 px-3 min-h-[48px] text-turf font-display font-semibold text-base active:scale-[.99] transition">
+            <span id="detailsLabel">⛳ Add course &amp; hole</span>
+            <svg id="detailsChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div id="details" class="hidden grid grid-cols-2 gap-2">
             <input id="course" type="text" maxlength="60" placeholder="Course — e.g. Woodlands GC"
@@ -413,6 +433,7 @@
     $("feedView").classList.add("hidden");
     $("snapView").classList.remove("hidden");
     $("tabs").classList.add("hidden");
+    applyRound();  // prefill today's course/hole so it is one entry per round
     window.scrollTo({ top: 0 });
   }
   function showFeed(refresh) {
@@ -704,13 +725,47 @@
   $("holeDown").addEventListener("click", () => stepHole(-1));
   $("holeUp").addEventListener("click", () => stepHole(1));
 
+  // --- Today's round memory: enter the course once, it sticks for the day ---
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+
+  function loadRound() {
+    try {
+      const r = JSON.parse(localStorage.getItem("golfrules_round") || "null");
+      return (r && r.date === todayStr()) ? r : null;
+    } catch (e) { return null; }
+  }
+
+  function saveRound() {
+    const course = $("course").value.trim();
+    if (!course) return;
+    localStorage.setItem("golfrules_round", JSON.stringify({
+      date: todayStr(), course, hole: $("hole").value.trim(),
+    }));
+  }
+
+  function applyRound() {
+    const r = loadRound();
+    if (r) {
+      if (!$("course").value.trim()) $("course").value = r.course;
+      if (!$("hole").value.trim() && r.hole) $("hole").value = r.hole;
+      if (!$("playedOn").value) $("playedOn").value = todayStr();
+    }
+    const c = $("course").value.trim();
+    const h = $("hole").value.trim();
+    $("detailsLabel").innerHTML = c
+      ? "⛳ " + esc(c) + (h ? " · hole " + esc(h) : "")
+      : "⛳ Add course &amp; hole";
+  }
+
   // Round-details expander: prefill today's date the first time it opens.
   $("detailsToggle").addEventListener("click", () => {
     const open = $("details").classList.toggle("hidden");
     $("detailsToggle").setAttribute("aria-expanded", String(!open));
+    $("detailsChevron").style.transform = open ? "" : "rotate(180deg)";
     if (!open && !$("playedOn").value) {
       $("playedOn").value = new Date().toISOString().slice(0, 10);
     }
+    if (open) applyRound();  // closing: refresh the summary label
   });
 
   async function requestRuling({ blob, note }) {
@@ -832,6 +887,8 @@
     btn.textContent = "Reading the lie…";
     try {
       render(await requestRuling(payload));
+      saveRound();   // remember the course/hole for the rest of today's round
+      applyRound();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -1120,7 +1177,16 @@
     $("bottomBar").classList.remove("hidden");
     loadFeed();
     if (location.hash === "#snap") showSnap();  // e.g. the About page's camera button
+    // First visit: one welcome card, never again.
+    if (!localStorage.getItem("golfrules_welcomed")) $("welcome").classList.remove("hidden");
   }
+
+  $("welcomeGo").addEventListener("click", () => {
+    localStorage.setItem("golfrules_welcomed", "1");
+    $("welcome").classList.add("hidden");
+    showSnap();  // first-timers land ready to snap; ✕ or back returns to the feed
+  });
+  $("closeSnap").addEventListener("click", () => showFeed(false));
 
   async function submitCode() {
     const code = $("gateCode").value.trim();
