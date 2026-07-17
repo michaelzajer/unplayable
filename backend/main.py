@@ -174,9 +174,12 @@ def share(submission_id: str, request: Request):
     if not sub:
         return JSONResponse({"error": "Not found."}, status_code=404)
 
-    # Build an absolute base URL (Cloud Run terminates TLS, so trust the forwarded proto).
+    # Build an absolute base URL. Behind Firebase Hosting -> Cloud Run the
+    # original domain arrives in x-forwarded-host; TLS ends upstream, so trust
+    # the forwarded proto too.
     proto = request.headers.get("x-forwarded-proto", request.url.scheme)
-    host = request.headers.get("host", request.url.netloc)
+    host = (request.headers.get("x-forwarded-host")
+            or request.headers.get("host", request.url.netloc))
     base = f"{proto}://{host}"
 
     def esc(v) -> str:

@@ -1,7 +1,9 @@
-# Unplayable — Design Brief
+# GolfRules.pro — Design Brief
 
 Visual direction: vibrant civic-app energy (Snap Send Solve register) with the rubber-stamp
-identity kept. Tone: cheeky and honest — "a guide, not the match committee".
+identity kept. Navy chrome, traffic-light ratings. Tone: cheeky and honest — "a guide,
+not the match committee". Live at golfrules.pro (Cloud Run, service name "unplayable" —
+the repo and infrastructure keep the original name).
 Reference implementation: `frontend/index.html`. Match it, do not reinterpret it.
 
 ## Tokens
@@ -9,18 +11,18 @@ Reference implementation: `frontend/index.html`. Match it, do not reinterpret it
 Colours (CSS variables, defined in index.html; mirrored in the Tailwind config,
 `backend/main.py` `_STAKE`, and the share-image canvas):
 
-- `--fairway` #29ABE2 — brand chrome ONLY: header, tabs, buttons, FAB, bottom bar
+- `--fairway` #1B2D4F — brand chrome ONLY (navy): header, tabs, buttons, FAB, bottom bar
 - `--card` #FFFFFF — cards / slips
 - `--page` #F4F8FB — page background
 - `--pencil` #1B2420 — body text
 - `--pencil-soft` #65706A — metadata, secondary text
 - `--ink-green` #0FA958 — good outcomes (Good call; free-relief verdicts; links)
 - `--ink-amber` #C28400 — reserved (no current use); darker ochre, never bright yellow
-- `--ink-red` #E03131 — bad outcomes (Bad call; penalty verdicts; disputed banner)
+- `--ink-red` #C8102E — bad outcomes (Bad call; penalty verdicts; hard-luck banner)
 - `--flag` #F5A623 — focus rings and the "unclear" ruling flag only
 - `--rule` #DFE6EB — borders and ruling lines
 
-Colour semantics are strict: blue means "the app and its actions"; green/red mean
+Colour semantics are strict: navy means "the app and its actions"; green/red mean
 "good call / bad call". Never mix the two jobs.
 
 Type: Oswald (condensed caps: verdicts, stamps, headers, primary buttons), Karla (body),
@@ -29,7 +31,7 @@ CDN + vanilla JS, no build step.
 
 ## Layout: feed-first
 
-The home page IS the feed (Snap Send Solve pattern). Sticky blue header with tabs
+The home page IS the feed (Snap Send Solve pattern). Sticky navy header with tabs
 Latest / The Feed / My lies ("The Feed" = hardest-luck sort).
 Below: a rating filter row, then the slips. A floating round camera button ("Snap") sits bottom-centre, cradled in a slim
 bottom bar (Feed · Snap · About). Tapping it opens the capture view: two large square
