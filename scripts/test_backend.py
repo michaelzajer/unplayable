@@ -84,6 +84,14 @@ check("canonical: direct run.app hit redirects 308",
 r_prox = client.get("/api/gate", headers={"host": "unplayable-x.a.run.app",
                                           "x-forwarded-host": "golfrules.pro"})
 check("canonical: Firebase-proxied request passes through", r_prox.status_code == 200)
+
+# Branded errors: pages get HTML, API paths keep JSON.
+r404 = client.get("/no-such-page")
+check("errors: unknown page gets branded 404 HTML",
+      r404.status_code == 404 and "GolfRules" in r404.text and "rough" in r404.text)
+r404api = client.get("/api/no-such-endpoint")
+check("errors: unknown API path stays JSON",
+      r404api.status_code == 404 and r404api.json().get("error") == "Not found.")
 check("verify-code accepts right code", client.post("/api/verify-code", data={"code": "test-code"}).json()["ok"])
 check("verify-code rejects wrong code", not client.post("/api/verify-code", data={"code": "nope"}).json()["ok"])
 for _ in range(10):

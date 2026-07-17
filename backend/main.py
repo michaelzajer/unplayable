@@ -93,6 +93,55 @@ app = FastAPI(title="GolfRules.pro")
 CANONICAL_HOST = os.environ.get("CANONICAL_HOST", "").strip()
 
 
+# --- Branded error pages ---
+# With Firebase rewriting every path here, users should never meet a bare
+# JSON error or a generic platform page for anything this app controls.
+_ERROR_PAGE = """<!DOCTYPE html>
+<html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ — GolfRules.pro</title>
+<style>
+  body{margin:0;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#F4F8FB;color:#1B2420;}
+  header{background:#1B2D4F;padding:1.4rem 1.5rem;}
+  header b{color:#fff;font-size:1.4rem;}header b i{color:#EF4444;font-style:normal;}
+  header b u{color:#C8D3E6;text-decoration:none;}
+  main{max-width:26rem;margin:3rem auto;padding:0 1.5rem;text-align:center;}
+  h1{font-size:3rem;margin:0;color:#1B2D4F;}
+  p{color:#4A5560;line-height:1.5;}
+  a{display:inline-block;margin-top:1rem;background:#1B2D4F;color:#fff;text-decoration:none;
+    padding:.7rem 1.4rem;border-radius:.5rem;font-weight:600;}
+  small{display:block;margin-top:2rem;color:#8892A0;}
+</style></head><body>
+<header><b>Golf<i>Rules</i><u>.pro</u></b></header>
+<main><h1>__CODE__</h1><p>__MSG__</p>
+<a href="/">Back to the feed</a>
+<small>A guide, not the match committee.</small></main>
+</body></html>"""
+
+
+def _error_html(code: str, title: str, msg: str) -> HTMLResponse:
+    page = (_ERROR_PAGE.replace("__CODE__", code)
+            .replace("__TITLE__", title).replace("__MSG__", msg))
+    return HTMLResponse(page, status_code=int(code))
+
+
+@app.exception_handler(404)
+async def not_found(request: Request, exc):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"error": "Not found."}, status_code=404)
+    return _error_html("404", "Lost ball",
+                       "That page has gone missing — probably deep in the rough.")
+
+
+@app.exception_handler(Exception)
+async def server_error(request: Request, exc):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"error": "Something went wrong. Try again shortly."},
+                            status_code=500)
+    return _error_html("500", "Bad lie",
+                       "Something went wrong on our end. Give it a minute and play on.")
+
+
 @app.middleware("http")
 async def canonical_redirect(request: Request, call_next):
     if CANONICAL_HOST and not request.headers.get("x-forwarded-host"):
