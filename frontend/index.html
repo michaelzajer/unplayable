@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Unplayable</title>
+<title>GolfRules.pro</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,12 +13,12 @@
     theme: {
       extend: {
         colors: {
-          turf: "#29ABE2",      /* --fairway */
+          turf: "#1B2D4F",      /* --fairway */
           fairway: "#0FA958",   /* --ink-green */
           paper: "#F4F8FB",     /* --page */
           ink: "#1B2420",       /* --pencil */
           inkSoft: "#65706A",   /* --pencil-soft */
-          stakeRed: "#E03131",  /* --ink-red */
+          stakeRed: "#C8102E",  /* --ink-red */
           stakeYellow: "#F5A623", /* --flag */
           chalk: "#FFFFFF",     /* --card */
           ruleLine: "#DFE6EB",  /* --rule */
@@ -34,12 +34,12 @@
 </script>
 <style>
   :root{
-    --fairway:#29ABE2;
+    --fairway:#1B2D4F;
     --card:#FFFFFF;
     --page:#F4F8FB;
     --pencil:#1B2420;
     --pencil-soft:#65706A;
-    --ink-red:#E03131;
+    --ink-red:#C8102E;
     --ink-green:#0FA958;
     --flag:#F5A623;
     --ink-amber:#C28400;
@@ -50,7 +50,7 @@
   body { background-color: #F4F8FB; font-family:'Karla',sans-serif; color:var(--pencil); }
   /* 16px inputs stop iOS Safari zooming the page on focus (its trigger is <16px). */
   input, textarea, select { font-size: 16px !important; }
-  .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(23,128,184,.08) 31px 32px); }
+  .ruled { background-image: repeating-linear-gradient(transparent 0 31px, rgba(27,45,79,.08) 31px 32px); }
   .font-display, .display { letter-spacing: .04em; }
   .mono{font-family:'IBM Plex Mono',monospace;}
 
@@ -76,7 +76,7 @@
     -webkit-mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
             mask-image: radial-gradient(140% 120% at 30% 20%, #000 82%, rgba(0,0,0,.72) 100%);
   }
-  .stamp-red { color: #E03131; } .stamp-green { color: #0FA958; } .stamp-neutral { color: #1B2420; } .stamp-flag { color: #F5A623; }
+  .stamp-red { color: #C8102E; } .stamp-green { color: #0FA958; } .stamp-neutral { color: #1B2420; } .stamp-flag { color: #F5A623; }
   /* compact variant for the verdict in the slip head */
   .stamp-sm { font-size: .66rem; border-width: 2px; padding: .12rem .4rem; letter-spacing: .06em; transform: rotate(-2deg); }
 
@@ -127,7 +127,7 @@
   .linkact{
     font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.05em;
     text-transform:uppercase;white-space:nowrap;
-    color:#1780B8;text-decoration:underline;text-underline-offset:4px;
+    color:#24406E;text-decoration:underline;text-underline-offset:4px;
     background:none;border:none;min-height:32px;padding:0 .25rem;
     display:inline-flex;align-items:center;gap:.3rem;
     transition:transform .08s ease;
@@ -139,7 +139,7 @@
   /* good/bad call as quiet toned links: muted until stamped, then bold ink.
      Darker inks than the stamps so the thin mono text keeps its contrast. */
   .linkact.tone-green{color:#0B7A40;opacity:.8;}
-  .linkact.tone-red{color:#B32424;opacity:.8;}
+  .linkact.tone-red{color:#A00D26;opacity:.8;}
   .linkact.on{opacity:1;font-weight:700;text-decoration-thickness:3px;}
 
   .tab{
@@ -162,8 +162,8 @@
   <header class="sticky top-0 z-20" style="background:var(--fairway);">
     <div class="max-w-md mx-auto px-4 pt-4 pb-3">
       <div class="flex items-baseline justify-between">
-        <span class="display font-display text-2xl font-bold uppercase" style="color:var(--card);">Unplayable</span>
-        <span class="mono text-[11px]" style="color:#D6EFFB;">snap your lie · get the ruling</span>
+        <span class="display font-display text-2xl font-bold" style="color:var(--card);">Golf<span style="color:#EF4444;">Rules</span><span style="color:#C8D3E6;">.pro</span></span>
+        <span class="mono text-[11px]" style="color:#C8D3E6;">snap your lie · get the ruling</span>
       </div>
     </div>
     <nav id="tabs" class="max-w-md mx-auto px-4 flex gap-6" style="background:var(--card);border-bottom:1px solid var(--rule);" role="tablist" aria-label="Feed views">
@@ -174,9 +174,9 @@
   </header>
 
   <!-- Access gate (shown only when the server requires a code) -->
-  <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(23,128,184,.96);">
+  <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(27,45,79,.96);">
     <div class="bg-chalk rounded-2xl shadow-lg border border-ink/10 w-full max-w-sm p-6 text-center">
-      <div class="font-display font-bold text-3xl text-turf leading-none uppercase">Unplayable</div>
+      <div class="font-display font-bold text-3xl text-turf leading-none">Golf<span style="color:#C8102E;">Rules</span><span style="color:#65706A;">.pro</span></div>
       <p class="text-sm text-ink/60 mt-2">Enter the access code to use the app.</p>
       <input id="gateCode" type="text" inputmode="text" autocomplete="off"
         placeholder="Access code"
@@ -317,7 +317,7 @@
       </section>
 
       <p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
-        Always check the official rule. Unplayable settles the banter — it is not the match committee.
+        Always check the official rule. GolfRules.pro settles the banter — it is not the match committee.
       </p>
     </div>
   </main>
@@ -327,7 +327,7 @@
     <div class="max-w-md mx-auto relative">
       <button id="fab" aria-label="Snap a lie"
         class="absolute left-1/2 -translate-x-1/2 -top-7 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition"
-        style="background:var(--fairway);color:var(--card);border:3px solid var(--card);box-shadow:0 8px 20px -6px rgba(23,128,184,.55);">
+        style="background:var(--fairway);color:var(--card);border:3px solid var(--card);box-shadow:0 8px 20px -6px rgba(27,45,79,.55);">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
         </svg>
@@ -349,7 +349,7 @@
 <script>
   const STAKE = {
     free_relief:   { bar: "#0FA958", label: "Free relief", type: "text-fairway", stamp: "stamp-green" },
-    penalty:       { bar: "#E03131", label: "Penalty",     type: "text-stakeRed", stamp: "stamp-red" },
+    penalty:       { bar: "#C8102E", label: "Penalty",     type: "text-stakeRed", stamp: "stamp-red" },
     play_as_it_lies:{ bar: "#1B2420", label: "Play it as it lies", type: "text-ink", stamp: "stamp-red" },
     unclear:       { bar: "#F5A623", label: "Need a closer look", type: "text-stakeYellow", stamp: "stamp-flag" },
   };
@@ -368,8 +368,8 @@
     if (avg < 1.8) return { label: "Good lie", ink: "#0FA958" };
     if (avg < 2.6) return { label: "Not bad", ink: "#0FA958" };
     if (avg < 3.4) return { label: "Fair", ink: "#C28400" };
-    if (avg < 4.2) return { label: "Rough", ink: "#E03131" };
-    return { label: "Hard luck", ink: "#E03131" };
+    if (avg < 4.2) return { label: "Rough", ink: "#C8102E" };
+    return { label: "Hard luck", ink: "#C8102E" };
   }
   function luckStats(counts) {
     let total = 0, sum = 0;
@@ -586,15 +586,15 @@
       const blob = await buildShareImage(item,
         /^[1-5]$/.test(String(item.my_luck)) ? String(item.my_luck) : null,
         item.stamp_counts || null, false);
-      const file = new File([blob], "unplayable.jpg", { type: "image/jpeg" });
+      const file = new File([blob], "golfrulespro.jpg", { type: "image/jpeg" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: caption, title: "Unplayable" });
+        await navigator.share({ files: [file], text: caption, title: "GolfRules.pro" });
         return;
       }
       if (!navigator.share) { // desktop fallback: download the image, copy the link
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "unplayable.jpg";
+        a.download = "golfrulespro.jpg";
         a.click();
         try { await navigator.clipboard.writeText(url); } catch (e) {}
         alert("Image saved and link copied — post it wherever you like.");
@@ -602,7 +602,7 @@
       }
     } catch (e) { /* fall through to link share */ }
     try {
-      await navigator.share({ title: "Unplayable", text: caption, url });
+      await navigator.share({ title: "GolfRules.pro", text: caption, url });
     } catch (e) { /* dismissed */ }
   }
 
@@ -981,12 +981,14 @@
     for (let ly = 190; ly < H - 160; ly += 44) {
       x.beginPath(); x.moveTo(0, ly); x.lineTo(W, ly); x.stroke();
     }
-    x.fillStyle = "#29ABE2"; x.fillRect(0, 0, W, 150);
-    x.fillStyle = "#FFFFFF";
+    x.fillStyle = "#1B2D4F"; x.fillRect(0, 0, W, 150);
     x.font = "700 66px 'Oswald', sans-serif";
     x.textAlign = "left"; x.textBaseline = "middle";
-    x.fillText("UNPLAYABLE", P, 80);
-    x.fillStyle = "#D6EFFB"; x.font = "500 24px 'IBM Plex Mono', monospace";
+    let wx = P;
+    x.fillStyle = "#FFFFFF"; x.fillText("Golf", wx, 80); wx += x.measureText("Golf").width;
+    x.fillStyle = "#EF4444"; x.fillText("Rules", wx, 80); wx += x.measureText("Rules").width;
+    x.fillStyle = "#C8D3E6"; x.fillText(".pro", wx, 80);
+    x.fillStyle = "#C8D3E6"; x.font = "500 24px 'IBM Plex Mono', monospace";
     x.textAlign = "right";
     x.fillText("A GUIDE, NOT THE MATCH COMMITTEE", W - P, 82);
     x.textAlign = "left";
@@ -1049,7 +1051,7 @@
     x.strokeStyle = "#DFE6EB"; x.lineWidth = 2; x.setLineDash([10, 8]);
     x.beginPath(); x.moveTo(P, H - 150); x.lineTo(W - P, H - 150); x.stroke();
     x.setLineDash([]);
-    x.fillStyle = "#1780B8"; x.font = "600 44px 'Oswald', sans-serif";
+    x.fillStyle = "#24406E"; x.font = "600 44px 'Oswald', sans-serif";
     x.fillText("SNAP YOUR LIE. GET THE RULING.", P, H - 112);
 
     return await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.9));
@@ -1061,19 +1063,19 @@
     btn.disabled = true;
     try {
       const blob = await buildShareImage(lastResult, null, null, true);
-      const file = new File([blob], "unplayable.jpg", { type: "image/jpeg" });
+      const file = new File([blob], "golfrulespro.jpg", { type: "image/jpeg" });
       const url = location.origin + "/r/" + lastResult.id;
       const text = (lastResult.verdict || "My golf ruling")
         + (lastResult.rule_number ? " — Rule " + lastResult.rule_number : "") + "\n" + url;
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text, title: "Unplayable" });
+        await navigator.share({ files: [file], text, title: "GolfRules.pro" });
       } else if (navigator.share) {
-        await navigator.share({ text, url, title: "Unplayable" });
+        await navigator.share({ text, url, title: "GolfRules.pro" });
       } else {
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "unplayable.jpg";
+        a.download = "golfrulespro.jpg";
         a.click();
         alert("Image saved — post it to Instagram, TikTok or wherever you like.");
       }

@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>The Feed — Unplayable</title>
+<title>The Feed — GolfRules.pro</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --fairway:#29ABE2;
+    --fairway:#1B2D4F;
     --card:#FFFFFF;
     --page:#F4F8FB;
     --pencil:#1B2420;
     --pencil-soft:#65706A;
-    --ink-red:#E03131;
+    --ink-red:#C8102E;
     --ink-green:#0FA958;
     --flag:#F5A623;
     --rule:#DFE6EB;
@@ -110,8 +110,8 @@
   <header class="sticky top-0 z-20" style="background:var(--fairway);">
     <div class="max-w-md mx-auto px-4 pt-4 pb-3">
       <div class="flex items-baseline justify-between">
-        <a href="/" class="display text-2xl font-bold uppercase" style="color:var(--card);">Unplayable</a>
-        <span class="mono text-[11px]" style="color:#D6EFFB;">a guide, not the match committee</span>
+        <a href="/" class="display text-2xl font-bold" style="color:var(--card);">Golf<span style="color:#EF4444;">Rules</span><span style="color:#C8D3E6;">.pro</span></a>
+        <span class="mono text-[11px]" style="color:#C8D3E6;">a guide, not the match committee</span>
       </div>
     </div>
     <nav class="max-w-md mx-auto px-4 flex gap-6" style="background:var(--card);border-bottom:1px solid var(--rule);" role="tablist" aria-label="Feed views">
@@ -133,7 +133,7 @@
   <div class="fixed bottom-0 inset-x-0 z-30" style="background:linear-gradient(to top,var(--page) 65%,transparent);">
     <div class="max-w-md mx-auto px-4 pb-4 pt-6">
       <a href="/" class="display w-full uppercase font-semibold tracking-wider text-lg rounded-md min-h-[52px] flex items-center justify-center gap-2"
-              style="background:var(--fairway);color:var(--card);box-shadow:0 8px 20px -10px rgba(23,128,184,.6);">
+              style="background:var(--fairway);color:var(--card);box-shadow:0 8px 20px -10px rgba(27,45,79,.6);">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>
         </svg>
@@ -316,7 +316,7 @@
     const text = (item.verdict || "A golf ruling")
       + (item.rule_number ? " — Rule " + item.rule_number : "");
     try {
-      if (navigator.share) await navigator.share({ title: "Unplayable", text, url });
+      if (navigator.share) await navigator.share({ title: "GolfRules.pro", text, url });
       else { await navigator.clipboard.writeText(url); alert("Link copied."); }
     } catch (e) { /* dismissed */ }
   }

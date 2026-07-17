@@ -1,4 +1,4 @@
-"""Unplayable API. Run from the project root with:  uvicorn backend.main:app --reload"""
+"""GolfRules.pro API. Run from the project root with:  uvicorn backend.main:app --reload"""
 
 import base64
 import html
@@ -83,7 +83,7 @@ def _looks_like_image(raw: bytes) -> bool:
 
 db.init_db()
 
-app = FastAPI(title="Unplayable")
+app = FastAPI(title="GolfRules.pro")
 
 # The frontend is served by this same app, so cross-origin access is only needed
 # if ALLOWED_ORIGINS is explicitly set (comma-separated). Default: same-origin only.
@@ -148,7 +148,7 @@ def submit_feedback(
 # Colour + label per ruling type, mirrored from the frontend.
 _STAKE = {
     "free_relief": ("#0FA958", "Free relief"),
-    "penalty": ("#E03131", "Penalty"),
+    "penalty": ("#C8102E", "Penalty"),
     "play_as_it_lies": ("#1B2420", "Play it as it lies"),
     "unclear": ("#F5A623", "Ruling"),
 }
@@ -162,8 +162,8 @@ def _luck_bucket(avg: float) -> tuple[str, str]:
     if avg < 3.4:
         return ("Fair", "#C28400")
     if avg < 4.2:
-        return ("Rough", "#E03131")
-    return ("Hard luck", "#E03131")
+        return ("Rough", "#C8102E")
+    return ("Hard luck", "#C8102E")
 _SHARE_TEMPLATE = (FRONTEND_DIR / "share.html").read_text(encoding="utf-8")
 
 
@@ -221,7 +221,7 @@ def share(submission_id: str, request: Request):
         pills += (f'<span class="pill" style="border-color:#0FA958;color:#0FA958;">'
                   f'Good call ×{gc}</span>')
     if bc:
-        pills += (f'<span class="pill" style="border-color:#E03131;color:#E03131;">'
+        pills += (f'<span class="pill" style="border-color:#C8102E;color:#C8102E;">'
                   f'Bad call ×{bc}</span>')
     if pills:
         stamp_block = (f'<div class="mt-4 flex flex-wrap gap-1.5" '
@@ -230,7 +230,7 @@ def share(submission_id: str, request: Request):
         stamp_block = ('<p class="mt-4 font-mono text-xs" style="color:#65706A;">'
                        'NOT RATED YET — BE THE FIRST</p>')
 
-    desc = explanation or situation or "A golf rules ruling from Unplayable."
+    desc = explanation or situation or "A golf rules ruling from GolfRules.pro."
     if total:
         desc = f"Rated {label.upper()} ({avg:.1f}/5) by {total} golfers. {desc}"
 

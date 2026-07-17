@@ -1,4 +1,4 @@
-# Unplayable — alpha
+# GolfRules.pro — beta
 
 Snap a photo of a weird golf lie, get a ruling back: verdict, a cheeky line, the rule
 number, and a link to the official R&A rule. No login. Stateless — stores nothing on

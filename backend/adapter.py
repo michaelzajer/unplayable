@@ -1,5 +1,5 @@
 """
-AI adapter for Unplayable.
+AI adapter for GolfRules.pro.
 
 This is the only file that knows which AI provider you are using. The rest of the
 app calls get_ruling() and gets back a plain dict. To benchmark a different model,
@@ -55,7 +55,7 @@ SCHEMA = """{
 
 
 def _build_system_prompt() -> str:
-    return f"""You are the rules assistant for Unplayable, a light-hearted golf app for \
+    return f"""You are the rules assistant for GolfRules.pro, a light-hearted golf app for \
 club golfers settling on-course arguments. You answer ONE kind of question only: what is \
 the Rules of Golf ruling for a ball's lie shown in a photo or described in a note.
 
