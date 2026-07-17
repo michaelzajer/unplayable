@@ -17,7 +17,8 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
+                               RedirectResponse, Response)
 
 from . import adapter, db
 
@@ -84,6 +85,24 @@ def _looks_like_image(raw: bytes) -> bool:
 db.init_db()
 
 app = FastAPI(title="GolfRules.pro")
+
+# --- Canonical host ---
+# Set CANONICAL_HOST (e.g. golfrules.pro) to bounce direct *.run.app hits to the
+# real domain. Requests proxied by Firebase Hosting carry x-forwarded-host and
+# pass through untouched; local dev (no env var, no .run.app host) is unaffected.
+CANONICAL_HOST = os.environ.get("CANONICAL_HOST", "").strip()
+
+
+@app.middleware("http")
+async def canonical_redirect(request: Request, call_next):
+    if CANONICAL_HOST and not request.headers.get("x-forwarded-host"):
+        host = request.headers.get("host", "").split(":")[0]
+        if host.endswith(".run.app"):
+            url = f"https://{CANONICAL_HOST}{request.url.path}"
+            if request.url.query:
+                url += "?" + request.url.query
+            return RedirectResponse(url, status_code=308)
+    return await call_next(request)
 
 # The frontend is served by this same app, so cross-origin access is only needed
 # if ALLOWED_ORIGINS is explicitly set (comma-separated). Default: same-origin only.

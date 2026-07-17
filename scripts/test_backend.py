@@ -34,6 +34,7 @@ con.commit(); con.close()
 
 os.environ["DATABASE_URL"] = f"sqlite:///{DB}"
 os.environ["ACCESS_CODE"] = "test-code"
+os.environ["CANONICAL_HOST"] = "golfrules.pro"
 os.environ["ANTHROPIC_API_KEY"] = "fake-key-never-used"
 
 from pathlib import Path
@@ -74,6 +75,15 @@ client = TestClient(main.app)
 H = {"X-Access-Code": "test-code"}
 
 check("gate reports required", client.get("/api/gate").json() == {"required": True})
+
+# Canonical host: direct run.app hits bounce to the real domain; proxied pass.
+r_dir = client.get("/api/gate", headers={"host": "unplayable-x.a.run.app"},
+                   follow_redirects=False)
+check("canonical: direct run.app hit redirects 308",
+      r_dir.status_code == 308 and r_dir.headers["location"] == "https://golfrules.pro/api/gate")
+r_prox = client.get("/api/gate", headers={"host": "unplayable-x.a.run.app",
+                                          "x-forwarded-host": "golfrules.pro"})
+check("canonical: Firebase-proxied request passes through", r_prox.status_code == 200)
 check("verify-code accepts right code", client.post("/api/verify-code", data={"code": "test-code"}).json()["ok"])
 check("verify-code rejects wrong code", not client.post("/api/verify-code", data={"code": "nope"}).json()["ok"])
 for _ in range(10):
