@@ -72,6 +72,8 @@ def main() -> None:
     p.add_argument("--course", default=None)
     p.add_argument("--hole", default=None)
     p.add_argument("--played-on", default=None)
+    p.add_argument("--bury", type=int, default=None, metavar="DAYS",
+                   help="push this lie DAYS into the past so it drops down the Latest feed")
     p.add_argument("--force", action="store_true", help="allow a non-SQLite database")
     args = p.parse_args()
 
@@ -145,6 +147,11 @@ def main() -> None:
             if d and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
                 sys.exit("played-on must be YYYY-MM-DD (or empty to clear)")
             changes["played_on"] = d or None
+        if args.bury is not None:
+            if not 1 <= args.bury <= 365:
+                sys.exit("bury must be 1-365 days")
+            from datetime import datetime, timedelta, timezone
+            changes["created_at"] = datetime.now(timezone.utc) - timedelta(days=args.bury)
 
     if not changes:
         sys.exit("Nothing to change — pass --show, --rerun, or at least one field flag.")

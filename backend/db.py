@@ -259,6 +259,17 @@ def set_shared(submission_id: str) -> bool:
     return result.rowcount > 0
 
 
+def list_shared() -> list[dict]:
+    """Id + created_at for every lie on the public feed — feeds the sitemap."""
+    with engine.connect() as conn:
+        rows = conn.execute(
+            select(submission.c.id, submission.c.created_at)
+            .where(submission.c.shared.is_(True))
+            .order_by(submission.c.created_at.desc())
+        ).all()
+    return [{"id": r[0], "created_at": r[1]} for r in rows]
+
+
 def add_vote(submission_id: str, session_id: str, stamp: str) -> bool:
     """Apply one stamp per (submission, session), replacing any prior stamp.
 

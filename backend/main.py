@@ -186,6 +186,33 @@ def feedback_page() -> FileResponse:
     return FileResponse(str(FRONTEND_DIR / "feedback.html"))
 
 
+@app.get("/robots.txt")
+def robots() -> Response:
+    """Point crawlers at the sitemap; keep them out of the API."""
+    base = f"https://{CANONICAL_HOST or 'golfrules.pro'}"
+    body = f"User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: {base}/sitemap.xml\n"
+    return Response(body, media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+def sitemap() -> Response:
+    """Static pages plus every shared lie, built live from the database."""
+    base = f"https://{CANONICAL_HOST or 'golfrules.pro'}"
+    urls: list[tuple[str, str | None]] = [(f"{base}/", None), (f"{base}/about", None)]
+    for row in db.list_shared():
+        lastmod = str(row["created_at"])[:10] if row["created_at"] else None
+        urls.append((f"{base}/r/{row['id']}", lastmod))
+    parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, lastmod in urls:
+        entry = f"  <url><loc>{html.escape(loc)}</loc>"
+        if lastmod:
+            entry += f"<lastmod>{lastmod}</lastmod>"
+        parts.append(entry + "</url>")
+    parts.append("</urlset>")
+    return Response("\n".join(parts), media_type="application/xml")
+
+
 @app.post("/api/feedback")
 def submit_feedback(
     request: Request,

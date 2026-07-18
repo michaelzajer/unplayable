@@ -230,4 +230,19 @@ mine = client.get("/api/feed", params={"mine": 1, "session_id": "owner-sess"}).j
 check("my lies: filtered by session", {i["id"] for i in mine} == {"legacy1", new_id, extra_id})
 check("my lies: empty without session", client.get("/api/feed", params={"mine": 1}).json() == [])
 
+# --- 7. Crawler surface (robots + sitemap) ---
+r_rob = client.get("/robots.txt")
+check("robots.txt: points at sitemap, blocks /api/",
+      r_rob.status_code == 200
+      and "Sitemap: https://golfrules.pro/sitemap.xml" in r_rob.text
+      and "Disallow: /api/" in r_rob.text)
+r_map = client.get("/sitemap.xml")
+check("sitemap: valid xml with home + about",
+      r_map.status_code == 200
+      and r_map.headers["content-type"].startswith("application/xml")
+      and "<loc>https://golfrules.pro/</loc>" in r_map.text
+      and "<loc>https://golfrules.pro/about</loc>" in r_map.text)
+check("sitemap: shared lie listed", f"/r/legacy1</loc>" in r_map.text)
+check("sitemap: unshared lie NOT listed", extra_id not in r_map.text)
+
 print(f"\nAll {ok_count} checks passed.")
