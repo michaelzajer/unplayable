@@ -147,10 +147,14 @@ async def canonical_redirect(request: Request, call_next):
     if CANONICAL_HOST and not request.headers.get("x-forwarded-host"):
         host = request.headers.get("host", "").split(":")[0]
         if host.endswith(".run.app"):
-            url = f"https://{CANONICAL_HOST}{request.url.path}"
-            if request.url.query:
-                url += "?" + request.url.query
-            return RedirectResponse(url, status_code=308)
+            # robots.txt must never redirect: crawlers treat that as fragile or
+            # unreachable. The endpoint itself answers host-aware (disallow all
+            # on the run.app host, so the duplicate host never gets indexed).
+            if request.url.path != "/robots.txt":
+                url = f"https://{CANONICAL_HOST}{request.url.path}"
+                if request.url.query:
+                    url += "?" + request.url.query
+                return RedirectResponse(url, status_code=308)
     return await call_next(request)
 
 # The frontend is served by this same app, so cross-origin access is only needed
@@ -187,8 +191,15 @@ def feedback_page() -> FileResponse:
 
 
 @app.get("/robots.txt")
-def robots() -> Response:
-    """Point crawlers at the sitemap; keep them out of the API."""
+def robots(request: Request) -> Response:
+    """Point crawlers at the sitemap; keep them out of the API.
+
+    On the direct *.run.app host, disallow everything instead: it is a
+    duplicate of the canonical domain and should never be indexed."""
+    host = (request.headers.get("x-forwarded-host")
+            or request.headers.get("host", "")).split(":")[0]
+    if host.endswith(".run.app"):
+        return Response("User-agent: *\nDisallow: /\n", media_type="text/plain")
     base = f"https://{CANONICAL_HOST or 'golfrules.pro'}"
     body = f"User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: {base}/sitemap.xml\n"
     return Response(body, media_type="text/plain")

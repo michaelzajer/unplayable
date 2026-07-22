@@ -244,5 +244,16 @@ check("sitemap: valid xml with home + about",
       and "<loc>https://golfrules.pro/about</loc>" in r_map.text)
 check("sitemap: shared lie listed", f"/r/legacy1</loc>" in r_map.text)
 check("sitemap: unshared lie NOT listed", extra_id not in r_map.text)
+# robots.txt must NOT redirect on the direct run.app host (crawlers treat a
+# redirected robots.txt as unreachable) — it serves disallow-all instead.
+r_rob_direct = client.get("/robots.txt", headers={"host": "unplayable-x.a.run.app"},
+                          follow_redirects=False)
+check("robots.txt: run.app host gets 200, not a 308",
+      r_rob_direct.status_code == 200 and "Disallow: /\n" in r_rob_direct.text
+      and "Allow" not in r_rob_direct.text)
+r_rob_prox = client.get("/robots.txt", headers={"host": "unplayable-x.a.run.app",
+                                                "x-forwarded-host": "golfrules.pro"})
+check("robots.txt: proxied canonical host still open for crawling",
+      "Allow: /" in r_rob_prox.text and "Sitemap:" in r_rob_prox.text)
 
 print(f"\nAll {ok_count} checks passed.")
