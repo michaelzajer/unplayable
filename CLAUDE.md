@@ -69,6 +69,23 @@ there is a `makeId()` fallback regardless). It is NOT an npm project — no pack
   the domain). www should redirect to apex, not serve.
 - Behind the proxy the real host arrives in `x-forwarded-host`; share URLs use
   it. Direct `*.run.app` hits get a 308 to golfrules.pro (canonical middleware).
+## SEO / GEO
+
+Every page has a unique title, meta description, canonical, and OG/Twitter tags.
+- **landing.html**: JSON-LD `@graph` (Organization, WebSite, WebApplication,
+  FAQPage) + a visible `<details>` FAQ that mirrors the FAQPage. Canonical `/`.
+- **index.html** (app): canonical + og:url point at `/app` (its post-cutover home),
+  so it does not compete with the landing for `/`.
+- **about.html**: AboutPage JSON-LD. **feedback.html**: `noindex, follow` (thin form).
+- **/r/ share pages** (share.html + `share()`): per-ruling QAPage JSON-LD (lie =
+  question, verdict+rule = answer), self-canonical, og:image = the lie photo or
+  the branded card fallback.
+- Brand/GEO assets served from `frontend/` via backend routes (explicit, never a
+  catch-all — that would shadow /robots.txt etc.): `/og-image.png` (1200×630
+  navy card), `/favicon.ico|.png`, `/apple-touch-icon.png`, and `/llms.txt`
+  (plain-language site guide for answer engines). These are NEW binary files —
+  remember to `git add frontend/og-image.png frontend/favicon.* frontend/apple-touch-icon.png frontend/shots/`.
+
 - `/sitemap.xml` is a backend endpoint (built live from shared lies).
   `public/robots.txt` is a STATIC Firebase file so Googlebot's robots fetch
   terminates at the CDN edge (Firebase serves public/ files before the rewrite;
@@ -101,6 +118,27 @@ trial ends (~mid-Aug 2026)**.
 `export_photos.py --flagged --force` → grade grading.csv (correct y/n + notes) →
 tune `backend/adapter.py` prompt and `rules/rules-reference.md` → `test_harness.py`
 until hit rate improves → normal release cycle.
+
+## Front door: landing at /, app at /app (cutover DONE)
+
+- `/` serves `frontend/landing.html` — static marketing page (hero, 4-screenshot
+  slider using `frontend/shots/01–04.png` via `/shots/{name}`, how-it-works,
+  features, `<details>` FAQ, footer). Richest, most crawlable page; self-canonical.
+- `/app` serves the app (`index.html`). `/landing` 301-redirects to `/`.
+- `/feed` still serves the app (old links).
+- PWA: `frontend/manifest.json` (`start_url=/app`, navy theme, icons 192/512/180)
+  linked from index.html + landing.html, served at `/manifest.json`; icons at
+  `/icon-192.png` `/icon-512.png`. Home-screen launch opens `/app` → on-course
+  fast entry, skipping the landing. index.html has theme-color + apple-mobile
+  meta.
+- Internal links repointed to `/app`: about.html (back-to-app, `/app#snap`, Feed),
+  feedback.html (both back-to-app), share.html "Get your own ruling" CTA. Share
+  header wordmark and landing are the brand home (`/`).
+- Welcome overlay still lives in the app (first visit → Get started → snap screen),
+  gated by localStorage `golfrules_welcomed`.
+- NEW binary files to `git add`: frontend/shots/, frontend/og-image.png,
+  frontend/favicon.*, frontend/apple-touch-icon.png, frontend/icon-192.png,
+  frontend/icon-512.png, frontend/manifest.json.
 
 ## Open items
 

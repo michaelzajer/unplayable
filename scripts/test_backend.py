@@ -204,6 +204,18 @@ check("share page: rating in preview description", "Rated HARD LUCK (4.5/5) by 2
 share_none = client.get(f"/r/{new_id}").text  # no ratings at this point
 check("share page: honest empty state", "NOT RATED YET" in share_none)
 
+# GEO: the share page carries a valid QAPage and a self-canonical.
+import json as _json, re as _re  # noqa: E402
+check("share page: self-canonical present",
+      'rel="canonical" href="http://testserver/r/legacy1"' in share_html)
+m = _re.search(r'ld\+json">(.*?)</script>', share_html, _re.S)
+check("share page: JSON-LD block present", m is not None)
+qa = _json.loads(m.group(1).replace("\\u003c", "<"))
+check("share page: JSON-LD is a valid QAPage with an answer",
+      qa["@type"] == "QAPage" and qa["mainEntity"]["acceptedAnswer"]["text"])
+check("share page: no lie photo falls back to branded og-image",
+      "/og-image.png" in share_none)
+
 # --- Feedback ---
 check("feedback: empty message rejected", client.post("/api/feedback",
       data={"message": "  "}).status_code == 400)
@@ -255,5 +267,36 @@ r_rob_prox = client.get("/robots.txt", headers={"host": "unplayable-x.a.run.app"
                                                 "x-forwarded-host": "golfrules.pro"})
 check("robots.txt: proxied canonical host still open for crawling",
       "Allow: /" in r_rob_prox.text and "Sitemap:" in r_rob_prox.text)
+
+# --- 8. SEO / GEO surface (assets + llms.txt) ---
+check("llms.txt: served for answer engines",
+      "GolfRules.pro" in client.get("/llms.txt").text
+      and client.get("/llms.txt").headers["content-type"].startswith("text/plain"))
+for asset, ctype in [("/favicon.ico", "image/x-icon"), ("/favicon.png", "image/png"),
+                     ("/apple-touch-icon.png", "image/png"), ("/og-image.png", "image/png")]:
+    r_a = client.get(asset)
+    check(f"asset served: {asset}",
+          r_a.status_code == 200 and r_a.headers["content-type"] == ctype)
+check("static asset route does not shadow /about",
+      client.get("/about").status_code == 200)
+
+# --- 9. Cutover: / is the landing, the app is at /app, /landing redirects ---
+land = client.get("/").text
+check("cutover: / serves the marketing landing",
+      "Snap your lie" in land and "Common questions" in land)
+check("cutover: /app serves the app",
+      "golfrules_welcomed" in client.get("/app").text)
+r_land = client.get("/landing", follow_redirects=False)
+check("cutover: /landing 301-redirects to /",
+      r_land.status_code == 301 and r_land.headers["location"] == "/")
+check("landing: JSON-LD graph parses (Org/WebSite/WebApplication/FAQPage)",
+      {g["@type"] for g in _json.loads(
+          _re.search(r'ld\+json">(.*?)</script>', land, _re.S).group(1))["@graph"]}
+      == {"Organization", "WebSite", "WebApplication", "FAQPage"})
+mani = client.get("/manifest.json")
+check("PWA manifest: start_url is /app",
+      mani.status_code == 200 and _json.loads(mani.text)["start_url"] == "/app")
+for ic in ("/icon-192.png", "/icon-512.png"):
+    check(f"PWA icon served: {ic}", client.get(ic).status_code == 200)
 
 print(f"\nAll {ok_count} checks passed.")
