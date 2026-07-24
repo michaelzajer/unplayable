@@ -3,7 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>GolfRules.pro</title>
+<title>GolfRules.pro — snap your lie, get the ruling</title>
+<meta name="description" content="Photograph a bad lie on the course and get an instant AI ruling backed by the official R&amp;A rule. Rate the calls, browse the feed, and share the best (or worst) lies from your round." />
+<link rel="canonical" href="https://golfrules.pro/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="GolfRules.pro" />
+<meta property="og:title" content="GolfRules.pro — snap your lie, get the ruling" />
+<meta property="og:description" content="Photograph a bad lie and get an instant AI ruling backed by the official R&amp;A rule. Rate the calls and share the best ones with your mates." />
+<meta property="og:url" content="https://golfrules.pro/" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="GolfRules.pro — snap your lie, get the ruling" />
+<meta name="twitter:description" content="Photograph a bad lie and get an instant AI ruling backed by the official R&amp;A rule." />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -162,6 +172,16 @@
 </head>
 <body class="min-h-screen pb-32">
 
+  <noscript>
+    <div style="max-width:28rem;margin:2rem auto;padding:0 1.25rem;font-family:sans-serif;color:#1B2420;">
+      <h1>GolfRules.pro — snap your lie, get the ruling</h1>
+      <p>Photograph a bad lie on the course and get an instant AI ruling, backed by the
+        official R&amp;A rule behind it. Rate the calls, browse the feed of everyone else's
+        worst luck, and share the ones worth arguing about.</p>
+      <p>A guide, not the match committee.</p>
+    </div>
+  </noscript>
+
   <header class="sticky top-0 z-20" style="background:var(--fairway);">
     <div class="max-w-md mx-auto px-4 pt-4 pb-3">
       <div class="flex items-baseline justify-between">
@@ -208,6 +228,16 @@
   </div>
 
   <main id="app" class="hidden max-w-md mx-auto px-4 pt-4">
+
+    <!-- Always in the DOM (visually hidden, screen-reader only) so crawlers get
+         real content even before/without the feed fetch resolving. -->
+    <div class="sr-only">
+      <h1>GolfRules.pro — instant golf rulings from a photo</h1>
+      <p>Photograph your ball's lie and get an instant ruling backed by the official
+        Rules of Golf: free relief, a penalty, or play it as it lies. Browse rulings
+        other golfers have shared, rate the calls, and see who has had the hardest
+        luck on the course this week.</p>
+    </div>
 
     <!-- ============ FEED VIEW (home) ============ -->
     <div id="feedView" class="space-y-4">
