@@ -69,10 +69,13 @@ there is a `makeId()` fallback regardless). It is NOT an npm project — no pack
   the domain). www should redirect to apex, not serve.
 - Behind the proxy the real host arrives in `x-forwarded-host`; share URLs use
   it. Direct `*.run.app` hits get a 308 to golfrules.pro (canonical middleware).
-- `/robots.txt` + `/sitemap.xml` are backend endpoints (sitemap built live from
-  shared lies). robots.txt is host-aware and exempt from the canonical 308: the
-  direct run.app host gets disallow-all (Googlebot treats a redirected
-  robots.txt as unreachable; the duplicate host must not be indexed).
+- `/sitemap.xml` is a backend endpoint (built live from shared lies).
+  `public/robots.txt` is a STATIC Firebase file so Googlebot's robots fetch
+  terminates at the CDN edge (Firebase serves public/ files before the rewrite;
+  Googlebot robots fetches through the Cloud Run rewrite were failing).
+  The backend `/robots.txt` endpoint still covers direct *.run.app hits
+  (host-aware disallow-all, exempt from the canonical 308 — a redirected
+  robots.txt reads as unreachable, and the duplicate host must not be indexed).
   Search Console: Domain property, sitemap submitted 18 Jul 2026.
 
 ## Email (golfrules.pro)
