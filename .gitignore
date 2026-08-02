@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 scripts/test_photos/*
 scripts/results.csv
+scripts/rulings_review.html
 !scripts/test_photos/.gitkeep
 scripts/seed_photos/
 .venv/

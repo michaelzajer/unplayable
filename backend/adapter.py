@@ -23,8 +23,22 @@ from pathlib import Path
 
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+
+
+class _RulingSchema(BaseModel):
+    """Constrains Gemini's output so it cannot emit malformed JSON (e.g. an
+    unescaped quote in the explanation). _normalise() still validates the values."""
+    on_topic: bool
+    situation: str
+    ruling_type: str
+    verdict: str
+    explanation: str
+    rule_number: str
+    rule_url: str
+    confidence: float
 RULES_PATH = Path(__file__).resolve().parent.parent / "rules" / "rules-reference.md"
 
 # rule_url is rendered as a link on the share page and in the feed, so it must
@@ -189,19 +203,28 @@ def get_ruling(image_b64: str | None, media_type: str, note: str) -> dict:
     user_text += " Give your ruling as JSON only."
     parts.append(types.Part.from_text(text=user_text))
 
-    try:
-        resp = _get_client().models.generate_content(
-            model=MODEL,
-            contents=[types.Content(role="user", parts=parts)],
-            config=types.GenerateContentConfig(
-                system_instruction=_build_system_prompt(),
-                max_output_tokens=1024,
-                temperature=0.4,
-                response_mime_type="application/json",
-            ),
-        )
-        data = _parse_json(resp.text or "")
-        data["model_used"] = MODEL
-        return data
-    except Exception as exc:  # noqa: BLE001 - alpha: surface any failure as a graceful fallback
-        return _fallback(str(exc))
+    config = types.GenerateContentConfig(
+        system_instruction=_build_system_prompt(),
+        # Gemini 2.5/3.x Flash "think" by default, which eats the output budget
+        # and truncated our JSON. This is a structured extraction task, so turn
+        # thinking off and give the JSON generous room.
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
+        max_output_tokens=2048,
+        temperature=0.4,
+        # Constrain output to the schema -> the model cannot return malformed JSON.
+        response_mime_type="application/json",
+        response_schema=_RulingSchema,
+    )
+    contents = [types.Content(role="user", parts=parts)]
+
+    last_err = ""
+    for _ in range(2):  # one retry: covers a rare transient error or bad parse
+        try:
+            resp = _get_client().models.generate_content(
+                model=MODEL, contents=contents, config=config)
+            data = _parse_json(resp.text or "")
+            data["model_used"] = MODEL
+            return data
+        except Exception as exc:  # noqa: BLE001 - surface any failure as a graceful fallback
+            last_err = str(exc)
+    return _fallback(last_err)

@@ -11,8 +11,10 @@ The repo/folder is still named `unplayable` — that was the working title.
   SQLite locally (`data/`), Neon Postgres in prod via `DATABASE_URL`. Lightweight
   in-code migrations run inside `init_db()`; extend that chain, never hand-migrate.
 - **AI**: Google Gemini (multimodal) via the `google-genai` SDK in
-  `backend/adapter.py`; model from `GEMINI_MODEL` (default `gemini-2.5-flash`),
-  key from `GEMINI_API_KEY`/`GOOGLE_API_KEY`. Swapped from Anthropic Claude; the
+  `backend/adapter.py`; model from `GEMINI_MODEL` (default `gemini-3.5-flash`;
+  2.5-flash is retired for new keys). Thinking is disabled (`thinking_budget=0`)
+  and `max_output_tokens=2048` so the JSON is not truncated by reasoning tokens.
+  Key from `GEMINI_API_KEY`/`GOOGLE_API_KEY`. Swapped from Anthropic Claude; the
   prompt, on-topic gate, and `_normalise()` contract are unchanged. The
   prompt has an on-topic gate (golf photos only), treats user notes as untrusted,
   and `_normalise()` enforces: ruling_type whitelist, confidence clamped 0-1,
