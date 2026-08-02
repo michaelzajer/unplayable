@@ -10,3 +10,6 @@ __pycache__/
 scripts/test_photos/
 scripts/results.csv
 scripts/seed_photos/
+# public/ is Firebase-only (edge). Cloud Run serves from frontend/, so keep it
+# out of the image.
+public/

@@ -35,7 +35,7 @@ con.commit(); con.close()
 os.environ["DATABASE_URL"] = f"sqlite:///{DB}"
 os.environ["ACCESS_CODE"] = "test-code"
 os.environ["CANONICAL_HOST"] = "golfrules.pro"
-os.environ["ANTHROPIC_API_KEY"] = "fake-key-never-used"
+os.environ["GEMINI_API_KEY"] = "fake-key-never-used"
 
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

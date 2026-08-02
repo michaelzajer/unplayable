@@ -10,7 +10,10 @@ The repo/folder is still named `unplayable` — that was the working title.
 - **Backend**: FastAPI, `backend/main.py`. SQLAlchemy Core in `backend/db.py` —
   SQLite locally (`data/`), Neon Postgres in prod via `DATABASE_URL`. Lightweight
   in-code migrations run inside `init_db()`; extend that chain, never hand-migrate.
-- **AI**: Anthropic API (claude-sonnet-4-6 vision) in `backend/adapter.py`. The
+- **AI**: Google Gemini (multimodal) via the `google-genai` SDK in
+  `backend/adapter.py`; model from `GEMINI_MODEL` (default `gemini-2.5-flash`),
+  key from `GEMINI_API_KEY`/`GOOGLE_API_KEY`. Swapped from Anthropic Claude; the
+  prompt, on-topic gate, and `_normalise()` contract are unchanged. The
   prompt has an on-topic gate (golf photos only), treats user notes as untrusted,
   and `_normalise()` enforces: ruling_type whitelist, confidence clamped 0-1,
   rule_url must start `https://www.randa.org/`. Verdicts are 2-5 punchy words,
@@ -52,18 +55,40 @@ there is a `makeId()` fallback regardless). It is NOT an npm project — no pack
 
 ## Release cycle (always in this order)
 
-1. Change + test locally.
+1. Change + test locally (`uvicorn` serves everything from `frontend/`).
 2. Commit and push to GitHub.
-3. Deploy: `gcloud run deploy unplayable --source . --region australia-southeast1`
-   (project `unplayable-app`). Secrets via Secret Manager: `anthropic-key`,
-   `database-url`. Env: `CANONICAL_HOST=golfrules.pro`, no `ACCESS_CODE` set (open).
+3. Deploy — TWO targets now (static edge + dynamic backend):
+   - **Static pages/assets changed** (frontend/landing, index, about, feedback,
+     images, shots): `python3 scripts/build_static.py` (syncs frontend/ → public/,
+     regenerates public/sitemap.xml from the DB) then
+     `firebase deploy --only hosting`.
+   - **Backend/dynamic changed** (backend/*, /r/ share template, /api):
+     `gcloud run deploy unplayable --source . --region australia-southeast1`
+     (project `unplayable-app`; secrets via Secret Manager `gemini-key`
+     (→ `GEMINI_API_KEY`), `database-url`; env `CANONICAL_HOST=golfrules.pro`,
+     no `ACCESS_CODE`).
+   - Most changes touch both — do both. Keep one Cloud Run instance warm:
+     `gcloud run services update unplayable --min-instances 1 --region australia-southeast1`.
 
-## Hosting topology (the tricky part)
+## Hosting topology (edge-first — the important part)
 
-- Cloud Run region australia-southeast1 has NO native domain mapping, so
-  **Firebase Hosting** fronts it: `firebase.json` rewrites `**` to the service.
-  `public/` holds only 404.html — `public/index.html` must NEVER exist or it
-  shadows the app.
+- **Firebase Hosting fronts Cloud Run** (australia-southeast1 has no native domain
+  mapping). Firebase serves files in `public/` FROM ITS CDN EDGE first, then falls
+  through the `**` rewrite to Cloud Run for anything not found. `cleanUrls:true`
+  so `/about` serves `public/about.html`, `/app` serves `public/app.html`.
+- **Static, crawl-critical pages serve from the edge → no cold start, no 5xx.**
+  `scripts/build_static.py` copies frontend/ into public/ (landing→`index.html`,
+  app shell→`app.html`, about, feedback, all icons/og-image/manifest/shots) and
+  writes `public/sitemap.xml`. These public/ copies are GENERATED (gitignored;
+  source of truth is frontend/). `public/index.html` SHOULD exist now — it is the
+  landing (this reverses the old rule from when / served the app via Cloud Run).
+- **Only genuinely dynamic paths reach Cloud Run**: `/api/*`, `/r/` share pages
+  (per-ruling server-rendered meta), and `/sitemap.xml` if the static one is
+  absent. The `**` rewrite stays as a safety net so a missing build never breaks
+  the site (it just falls back to Cloud Run with cold-start risk).
+- Cloud Run still serves the same pages at its own routes for LOCAL DEV (uvicorn)
+  and direct *.run.app hits; in prod the edge shadows them. `public/` is excluded
+  from the Docker image (.dockerignore) — Cloud Run serves from `frontend/`.
 - golfrules.pro: apex A 199.36.158.100; www CNAME → unplayable-app.web.app
   (Crazy Domains DNS; its subdomain field takes ONLY the label, it auto-appends
   the domain). www should redirect to apex, not serve.
