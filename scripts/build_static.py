@@ -78,8 +78,9 @@ def main() -> None:
             print(f"  asset  {a}")
     shots_src, shots_dst = FRONTEND / "shots", PUBLIC / "shots"
     if shots_src.is_dir():
-        shutil.rmtree(shots_dst, ignore_errors=True)
-        shutil.copytree(shots_src, shots_dst)
+        # dirs_exist_ok avoids a delete step (which some sandboxes cannot do) and
+        # simply overwrites each screenshot in place.
+        shutil.copytree(shots_src, shots_dst, dirs_exist_ok=True)
         print(f"  shots  {len(list(shots_src.glob('*')))} screenshot(s)")
     note = _write_sitemap()
     print(f"  sitemap public/sitemap.xml ({note})")
