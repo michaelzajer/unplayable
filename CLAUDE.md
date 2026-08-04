@@ -10,6 +10,20 @@ The repo/folder is still named `unplayable` — that was the working title.
 - **Backend**: FastAPI, `backend/main.py`. SQLAlchemy Core in `backend/db.py` —
   SQLite locally (`data/`), Neon Postgres in prod via `DATABASE_URL`. Lightweight
   in-code migrations run inside `init_db()`; extend that chain, never hand-migrate.
+- **Image storage**: `backend/storage.py`. When `FIREBASE_STORAGE_BUCKET` is set
+  (prod), lie photos upload to Firebase Storage and `image_path` is an absolute
+  `https://storage.googleapis.com/<bucket>/lies/<uuid>.jpg` URL served from the
+  CDN — bytes never touch Cloud Run or the DB (this is the scaling fix). With no
+  bucket (local/tests) it falls back to the DB BLOB store + `/api/image/{id}`, so
+  local dev and `test_backend.py` are unchanged. `share()` handles both (absolute
+  vs relative `image_path`). Phase 2 (retire Neon → Firestore) is still pending.
+  ONE-TIME infra: enable Firebase Storage on `unplayable-app`; grant the Cloud Run
+  service account `roles/storage.objectAdmin`; make the bucket public-read
+  (`gcloud storage buckets add-iam-policy-binding gs://<bucket> --member=allUsers
+  --role=roles/storage.objectViewer`); set a CORS rule allowing GET from
+  golfrules.pro + localhost (the share-image canvas uses `crossOrigin`); set env
+  `FIREBASE_STORAGE_BUCKET` on the service. Then move existing photos:
+  `python3 scripts/migrate_images_to_storage.py --go --force`.
 - **AI**: Google Gemini (multimodal) via the `google-genai` SDK in
   `backend/adapter.py`; model from `GEMINI_MODEL` (default `gemini-3.5-flash`;
   2.5-flash is retired for new keys). Thinking is disabled (`thinking_budget=0`)

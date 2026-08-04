@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://golfrules.pro", "https://www.golfrules.pro", "http://localhost:8000"],
+    "method": ["GET"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]

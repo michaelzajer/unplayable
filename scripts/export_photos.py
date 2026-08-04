@@ -67,11 +67,20 @@ def main() -> None:
         w.writerow(["file", "id", "verdict", "ruling_type", "rule_number",
                     "user_note", "bad_calls", "report", "correct", "notes"])
         for r in rows:
-            image_id = r["image_path"].removeprefix("/api/image/")
-            found = db.get_image(image_id)
-            if not found:
-                continue
-            _, data = found
+            ip = r["image_path"]
+            if ip.startswith("http"):
+                # Photo lives in Firebase Storage now — fetch it from the URL.
+                import urllib.request
+                try:
+                    data = urllib.request.urlopen(ip, timeout=20).read()
+                except Exception as e:
+                    print(f"  ! {r['id'][:8]}: could not fetch {ip} ({e})")
+                    continue
+            else:
+                found = db.get_image(ip.removeprefix("/api/image/"))
+                if not found:
+                    continue
+                _, data = found
             name = f"db-{r['id'][:8]}.jpg"
             (PHOTOS_DIR / name).write_bytes(data)
             w.writerow([name, r["id"], r["verdict"], r["ruling_type"],

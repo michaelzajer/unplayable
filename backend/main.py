@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
                                RedirectResponse, Response)
 
-from . import adapter, db
+from . import adapter, db, storage
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = ROOT / "frontend"
@@ -420,7 +420,9 @@ def share(submission_id: str, request: Request):
 
     image_path = sub.get("image_path")
     if image_path:
-        img_abs = esc(base + image_path)
+        # Storage URLs are absolute; the legacy /api/image path is relative.
+        abs_url = image_path if image_path.startswith("http") else base + image_path
+        img_abs = esc(abs_url)
         image_block = (f'<img src="{esc(image_path)}" class="w-full rounded-2xl shadow-sm '
                        f'border border-ink/10" alt="The lie" />')
     else:
@@ -577,8 +579,8 @@ async def ruling(
 
     image_path = None
     if raw is not None:
-        image_id = db.insert_image(raw, media_type)
-        image_path = f"/api/image/{image_id}"
+        # Firebase Storage in prod (served from the CDN); DB fallback locally.
+        image_path = storage.store_image(raw, media_type)
 
     record = {**result, "image_path": image_path, "user_note": note, "session_id": session_id,
               "course": course, "hole": hole_num, "played_on": played}
