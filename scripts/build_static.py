@@ -78,10 +78,19 @@ def main() -> None:
             print(f"  asset  {a}")
     shots_src, shots_dst = FRONTEND / "shots", PUBLIC / "shots"
     if shots_src.is_dir():
-        # dirs_exist_ok avoids a delete step (which some sandboxes cannot do) and
-        # simply overwrites each screenshot in place.
-        shutil.copytree(shots_src, shots_dst, dirs_exist_ok=True)
-        print(f"  shots  {len(list(shots_src.glob('*')))} screenshot(s)")
+        shots_dst.mkdir(exist_ok=True)
+        copied = 0
+        for p in sorted(shots_src.glob("*")):
+            if not p.is_file():
+                continue
+            try:
+                shutil.copyfile(p, shots_dst / p.name)
+                copied += 1
+            except PermissionError:
+                # A locked/foreign-owned copy already exists; the content is the
+                # same, so warn and carry on rather than crashing the whole build.
+                print(f"  ! shots/{p.name}: not writable, left in place")
+        print(f"  shots  {copied} screenshot(s) copied")
     note = _write_sitemap()
     print(f"  sitemap public/sitemap.xml ({note})")
     print("Done. Now: firebase deploy --only hosting")

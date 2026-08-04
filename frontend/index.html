@@ -24,7 +24,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="GolfRules" />
-<!-- Google Analytics (GA4) -->
+<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYLSG9ZLYR"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -154,7 +154,7 @@
   .mini:disabled{opacity:.65;}
   .mini .n{font-family:'IBM Plex Mono',monospace;font-size:.66rem;opacity:.85;}
 
-  /* quiet link-style action: lighter than a button, still an obvious tap target */
+  /* quiet link-style action: lighter than a button */
   .linkact{
     font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.05em;
     text-transform:uppercase;white-space:nowrap;
@@ -193,8 +193,8 @@
   <noscript>
     <div style="max-width:28rem;margin:2rem auto;padding:0 1.25rem;font-family:sans-serif;color:#1B2420;">
       <h1>GolfRules.pro — snap your lie, get the ruling</h1>
-      <p>Photograph a bad lie on the course and get an instant AI ruling, backed by the
-        official R&amp;A rule behind it. Rate the calls, browse the feed of everyone else's
+      <p>Snap a bad lie on the course and get an instant ruling with the 
+        official R&amp;A rules. Rate the calls, browse the feed of everyone else's
         worst luck, and share the ones worth arguing about.</p>
       <p>A guide, not the match committee.</p>
     </div>
@@ -234,7 +234,7 @@
   <div id="welcome" class="hidden fixed inset-0 z-40 flex items-center justify-center px-6" style="background:rgba(27,45,79,.96);">
     <div class="bg-chalk rounded-2xl shadow-lg border border-ink/10 w-full max-w-sm p-6 text-center">
       <div class="font-display font-bold text-3xl text-turf leading-none">Golf<span style="color:#C8102E;">Rules</span><span style="color:#65706A;">.pro</span></div>
-      <p class="mt-3 text-base leading-relaxed text-ink/80">Photograph your ball's lie and get the ruling in seconds.</p>
+      <p class="mt-3 text-base leading-relaxed text-ink/80">Snap your ball's lie and get the ruling in seconds.</p>
       <p class="mt-2 text-sm text-ink/60">Rate the calls on the feed. Share the ones worth arguing about.</p>
       <div class="mt-4 font-mono text-[11px] tracking-wide" style="color:#65706A;">01 SNAP &nbsp;·&nbsp; 02 RATE &nbsp;·&nbsp; 03 SHARE</div>
       <button id="welcomeGo"
@@ -251,7 +251,7 @@
          real content even before/without the feed fetch resolving. -->
     <div class="sr-only">
       <h1>GolfRules.pro — instant golf rulings from a photo</h1>
-      <p>Photograph your ball's lie and get an instant ruling backed by the official
+      <p>Snap your ball's lie and get an instant ruling backed by the official
         Rules of Golf: free relief, a penalty, or play it as it lies. Browse rulings
         other golfers have shared, rate the calls, and see who has had the hardest
         luck on the course this week.</p>
@@ -260,10 +260,10 @@
     <!-- ============ FEED VIEW (home) ============ -->
     <div id="feedView" class="space-y-4">
 
-      <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading the slips…</div>
+      <div id="loading" class="mono text-center text-sm py-12" style="color:var(--pencil-soft);">Loading…</div>
       <div id="empty" class="hidden text-center py-12">
         <p class="display font-display text-2xl uppercase" style="color:var(--fairway);">Nothing here yet</p>
-        <p id="emptyHint" class="mt-2 text-sm" style="color:var(--pencil-soft);">Be the first — snap a lie and post the ruling.</p>
+        <p id="emptyHint" class="mt-2 text-sm" style="color:var(--pencil-soft);">Be the first to snap a lie and post the ruling.</p>
         <button data-snap class="mt-4 inline-block bg-turf text-chalk font-display font-semibold text-lg rounded-lg px-5 py-2.5">Snap a lie</button>
       </div>
       <div id="list" class="space-y-4"></div>
@@ -361,7 +361,7 @@
 
             <a id="reportLink" href="/feedback"
               class="hidden mt-2 font-mono text-xs underline underline-offset-4 min-h-[44px] items-center" style="color:#65706A;">
-              Ruling look wrong? Report it
+              Ruling look wrong? Let us know.
             </a>
 
             <button id="postBtn" type="button"
@@ -384,7 +384,7 @@
       </section>
 
       <p class="text-center text-xs text-ink/40 px-6 leading-relaxed">
-        Always check the official rule. GolfRules.pro settles the banter — it is not the match committee.
+        Always check the official rule. GolfRules.pro settles the banter. We are not the match committee.
       </p>
     </div>
   </main>
