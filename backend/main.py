@@ -275,6 +275,21 @@ def llms_txt() -> Response:
 - Hosts a public feed where golfers rate whether the call was right and see the
   hardest-luck lies of the week.
 
+## Lies it rules on (the situations golfers ask about most)
+- Free relief from abnormal course conditions: cart paths, sprinkler heads and
+  other immovable obstructions, casual/temporary water, ground under repair.
+- Drop options from a penalty area (red or yellow stakes).
+- A ball in a bunker, and whether relief is available.
+- Whether a ball against a tree, a fence, or buried in a bush is unplayable, and
+  the unplayable relief options (stroke and distance, back-on-the-line, two
+  club-lengths).
+- Whether an ugly lie is actually still playable rather than unplayable.
+
+## How it differs from other golf rules apps
+- Other rules apps make you pick your situation from a menu. GolfRules.pro reads
+  the actual photo of the lie, so the golfer points the camera instead of
+  tapping through lists.
+
 ## Key facts
 - Free to use. No account or login required.
 - Built for mobile use on the golf course. Works in any browser.
