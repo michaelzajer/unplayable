@@ -42,7 +42,7 @@ def _write_sitemap() -> str:
     load_dotenv()
     import os
     base = f"https://{os.environ.get('CANONICAL_HOST', 'golfrules.pro').strip() or 'golfrules.pro'}"
-    urls = [(f"{base}/", None), (f"{base}/about", None)]
+    urls = [(f"{base}/", None), (f"{base}/app", None), (f"{base}/about", None)]
     note = "static pages only"
     try:
         sys.path.insert(0, str(ROOT))

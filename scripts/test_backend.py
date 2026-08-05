@@ -276,11 +276,13 @@ check("robots.txt: points at sitemap, blocks /api/",
       and "Sitemap: https://golfrules.pro/sitemap.xml" in r_rob.text
       and "Disallow: /api/" in r_rob.text)
 r_map = client.get("/sitemap.xml")
-check("sitemap: valid xml with home + about",
+check("sitemap: valid xml with home + app + about",
       r_map.status_code == 200
       and r_map.headers["content-type"].startswith("application/xml")
       and "<loc>https://golfrules.pro/</loc>" in r_map.text
+      and "<loc>https://golfrules.pro/app</loc>" in r_map.text
       and "<loc>https://golfrules.pro/about</loc>" in r_map.text)
+check("sitemap: noindex /feedback NOT listed", "/feedback</loc>" not in r_map.text)
 check("sitemap: shared lie listed as slug", "/r/unplayable-legacy1</loc>" in r_map.text)
 check("sitemap: unshared lie NOT listed", extra_id not in r_map.text)
 # robots.txt must NOT redirect on the direct run.app host (crawlers treat a

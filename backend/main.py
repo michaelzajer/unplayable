@@ -331,7 +331,9 @@ def robots(request: Request) -> Response:
 def sitemap() -> Response:
     """Static pages plus every shared lie, built live from the database."""
     base = f"https://{CANONICAL_HOST or 'golfrules.pro'}"
-    urls: list[tuple[str, str | None]] = [(f"{base}/", None), (f"{base}/about", None)]
+    # /feedback is intentionally absent — it is noindex (never sitemap a noindex page).
+    urls: list[tuple[str, str | None]] = [
+        (f"{base}/", None), (f"{base}/app", None), (f"{base}/about", None)]
     for row in db.list_shared():
         lastmod = str(row["created_at"])[:10] if row["created_at"] else None
         urls.append((f"{base}{row['share_path']}", lastmod))
