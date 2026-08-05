@@ -636,6 +636,15 @@ def feed(sort: str = "latest", mine: int = 0, session_id: str = ""):
     return db.get_feed(sort=sort, mine=bool(mine), session_id=session_id or None)
 
 
+@app.post("/api/share/{submission_id}")
+def record_share(submission_id: str, request: Request):
+    """Count one share of a ruling — drives The Feed's most-shared sort.
+    Ungated (sharing is public) but rate limited so it cannot be spammed."""
+    _rate_limit(request, "share", limit=20, window_s=60)
+    db.add_share(submission_id.strip()[:64])  # no-op if the id does not exist
+    return {"ok": True}
+
+
 @app.post("/api/vote")
 def vote(
     request: Request,

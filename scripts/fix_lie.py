@@ -74,6 +74,9 @@ def main() -> None:
     p.add_argument("--played-on", default=None)
     p.add_argument("--bury", type=int, default=None, metavar="DAYS",
                    help="push this lie DAYS into the past so it drops down the Latest feed")
+    p.add_argument("--feature", action="store_true",
+                   help="pin this lie to the very top of The Feed")
+    p.add_argument("--unfeature", action="store_true", help="remove the top-of-Feed pin")
     p.add_argument("--force", action="store_true", help="allow a non-SQLite database")
     args = p.parse_args()
 
@@ -86,7 +89,7 @@ def main() -> None:
         for k in ("id", "created_at", "shared", "verdict", "ruling_type", "situation",
                   "explanation", "rule_number", "rule_url", "confidence",
                   "suggested_stamp", "user_note", "course", "hole", "played_on",
-                  "image_path", "model_used"):
+                  "image_path", "model_used", "featured", "share_count"):
             print(f"  {k:16} {sub.get(k)!r}")
         return
 
@@ -152,6 +155,10 @@ def main() -> None:
                 sys.exit("bury must be 1-365 days")
             from datetime import datetime, timedelta, timezone
             changes["created_at"] = datetime.now(timezone.utc) - timedelta(days=args.bury)
+        if args.feature:
+            changes["featured"] = True
+        if args.unfeature:
+            changes["featured"] = False
 
     if not changes:
         sys.exit("Nothing to change — pass --show, --rerun, or at least one field flag.")

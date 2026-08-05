@@ -47,6 +47,14 @@ The repo/folder is still named `unplayable` — that was the working title.
 Golfers rate ONE thing in the UI: the ruling, via quiet `good_call` / `bad_call`
 links (`.linkact`) on each card. Same-kind votes replace; `clear` removes a call.
 
+**The Feed tab** (`sort=worst`) is ordered by: `featured` pin first, then
+`share_count` (most-shared), then legacy `worst_score`, then recency. Share
+tracking: `POST /api/share/{id}` (`db.add_share`) fires when a golfer completes a
+share/copy; there is no per-worst voting yet, so shares stand in for "worst".
+Pin a highlight with `fix_lie.py <id> --feature` (`db.set_featured`) — honest
+editorial curation, not a faked count. Top-of-Feed card wears the "Doing the
+rounds" banner.
+
 **Legacy luck votes** (`"1".."5"` in `vote.stamp`) still exist in the data and
 still power the hardest-luck sort (`STAMP_WEIGHTS`), the luck buckets
 (<1.8 Good lie, <2.6 Not bad, <3.4 Fair, <4.2 Rough, else Hard luck), and the

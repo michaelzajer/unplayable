@@ -254,6 +254,21 @@ mine = client.get("/api/feed", params={"mine": 1, "session_id": "owner-sess"}).j
 check("my lies: filtered by session", {i["id"] for i in mine} == {"legacy1", new_id, extra_id})
 check("my lies: empty without session", client.get("/api/feed", params={"mine": 1}).json() == [])
 
+# --- The Feed: most-shared sort + featured pin ---
+check("share endpoint records a share", client.post(f"/api/share/{new_id}").status_code == 200)
+client.post(f"/api/share/{new_id}"); client.post(f"/api/share/{new_id}")  # new_id: 3 shares
+check("share endpoint tolerates an unknown id",
+      client.post("/api/share/does-not-exist").status_code == 200)
+worst2 = client.get("/api/feed", params={"sort": "worst"}).json()
+check("The Feed: most-shared lie ranks above the hardest-luck one",
+      worst2[0]["id"] == new_id and worst2[0]["share_count"] == 3)
+db.set_featured("legacy1", True)
+check("The Feed: a featured pin goes to the very top",
+      client.get("/api/feed", params={"sort": "worst"}).json()[0]["id"] == "legacy1")
+db.set_featured("legacy1", False)
+check("The Feed: unpinning restores the most-shared order",
+      client.get("/api/feed", params={"sort": "worst"}).json()[0]["id"] == new_id)
+
 # --- 7. Crawler surface (robots + sitemap) ---
 r_rob = client.get("/robots.txt")
 check("robots.txt: points at sitemap, blocks /api/",

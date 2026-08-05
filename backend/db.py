@@ -71,6 +71,9 @@ submission = Table(
     Column("course", String),
     Column("hole", Integer),
     Column("played_on", String),  # ISO date YYYY-MM-DD; string for cross-dialect simplicity
+    # The Feed sort: most-shared first. featured pins a highlight to the very top.
+    Column("share_count", Integer, default=0),
+    Column("featured", Boolean, default=False),
 )
 
 image = Table(
@@ -147,6 +150,10 @@ def init_db() -> None:
             conn.execute(text("ALTER TABLE submission ADD COLUMN course VARCHAR"))
             conn.execute(text("ALTER TABLE submission ADD COLUMN hole INTEGER"))
             conn.execute(text("ALTER TABLE submission ADD COLUMN played_on VARCHAR"))
+        if "share_count" not in sub_cols:
+            conn.execute(text("ALTER TABLE submission ADD COLUMN share_count INTEGER DEFAULT 0"))
+        if "featured" not in sub_cols:
+            conn.execute(text("ALTER TABLE submission ADD COLUMN featured BOOLEAN DEFAULT FALSE"))
 
     # Vote model migration: boolean up/down votes become stamps. Every legacy vote
     # maps to 'brutal' (the old button meant "what a shocker"), then the numeric
@@ -271,7 +278,10 @@ def get_feed(limit: int = 50, sort: str = "latest",
         r["share_path"] = "/r/" + ruling_slug(r.get("situation"), r.get("verdict"), r["id"])
 
     if sort == "worst":
-        rows.sort(key=lambda r: (r["worst_score"], r["created_at"]), reverse=True)
+        # "The Feed": a featured pin first, then most-shared, then newest.
+        # (Legacy luck weighting kept as the final tiebreak.)
+        rows.sort(key=lambda r: (bool(r.get("featured")), r.get("share_count") or 0,
+                                 r["worst_score"], r["created_at"]), reverse=True)
     return rows[:limit]
 
 
@@ -280,6 +290,28 @@ def set_shared(submission_id: str) -> bool:
     with engine.begin() as conn:
         result = conn.execute(
             update(submission).where(submission.c.id == submission_id).values(shared=True)
+        )
+    return result.rowcount > 0
+
+
+def add_share(submission_id: str) -> bool:
+    """Count one share of a ruling — drives The Feed's most-shared sort."""
+    from sqlalchemy import update
+    with engine.begin() as conn:
+        result = conn.execute(
+            update(submission).where(submission.c.id == submission_id)
+            .values(share_count=func.coalesce(submission.c.share_count, 0) + 1)
+        )
+    return result.rowcount > 0
+
+
+def set_featured(submission_id: str, featured: bool) -> bool:
+    """Pin (or unpin) a ruling to the very top of The Feed — editorial highlight."""
+    from sqlalchemy import update
+    with engine.begin() as conn:
+        result = conn.execute(
+            update(submission).where(submission.c.id == submission_id)
+            .values(featured=featured)
         )
     return result.rowcount > 0
 

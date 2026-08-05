@@ -541,7 +541,7 @@
         </div>
         <span class="mono text-xs whitespace-nowrap" style="color:var(--pencil-soft);">${esc(relTime(item.created_at))}</span>
       </div>
-      ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Hardest luck going round</div>` : ""}
+      ${isWorst ? `<div class="mono text-[11px] px-3 py-1.5 uppercase tracking-widest" style="background:var(--ink-red);color:#FFFFFF;">Doing the rounds</div>` : ""}
       <div class="relative">
         ${img}
       </div>
@@ -646,14 +646,16 @@
 
   // Share the LINK to the ruling, not a PNG — a shared link drives traffic back
   // and WhatsApp/social unfurl the photo preview from the /r/ page's og:image.
+  function recordShare(id) { try { fetch("/api/share/" + id, { method: "POST" }); } catch (e) {} }
+
   async function shareLie(item) {
     const url = location.origin + (item.share_path || ("/r/" + item.id));
     // Share ONLY the link (no free text) — some targets merge text into the URL
     // and corrupt it. The /r/ page's og:image/og:title carry the verdict + photo.
     if (navigator.share) {
-      try { await navigator.share({ title: "GolfRules.pro", url }); } catch (e) { /* dismissed */ }
+      try { await navigator.share({ title: "GolfRules.pro", url }); recordShare(item.id); } catch (e) { /* dismissed */ }
     } else {
-      try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
+      try { await navigator.clipboard.writeText(url); recordShare(item.id); alert("Link copied — paste it anywhere."); }
       catch (e) { prompt("Copy this link:", url); }
     }
   }
@@ -672,13 +674,9 @@
       $("empty").classList.remove("hidden");
       return;
     }
-    // The reigning worst lie (highest weighted score with real stamps) wears
-    // the banner on its ordinary card — no separate hero, no double-up.
-    let worstId = null, best = 0;
-    for (const i of feedItems) {
-      if ((i.worst_score || 0) > best) { best = i.worst_score; worstId = i.id; }
-    }
-    items.forEach((item) => list.appendChild(card(item, item.id === worstId)));
+    // On The Feed, the top lie (featured / most-shared) wears the banner.
+    const topId = (currentTab === "worst" && items.length) ? items[0].id : null;
+    items.forEach((item) => list.appendChild(card(item, item.id === topId)));
   }
 
   async function loadFeed() {
@@ -1151,8 +1149,9 @@
       // Link only — no free text (some targets merge it into the URL and break it).
       if (navigator.share) {
         await navigator.share({ title: "GolfRules.pro", url });
+        recordShare(lastResult.id);
       } else {
-        try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
+        try { await navigator.clipboard.writeText(url); recordShare(lastResult.id); alert("Link copied — paste it anywhere."); }
         catch (e) { prompt("Copy this link:", url); }
       }
     } catch (e) {
