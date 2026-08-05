@@ -403,7 +403,12 @@ def share(ref: str, request: Request):
     a bare submission id (old links). Non-canonical refs 301 to the slug URL, so
     there is one canonical address per ruling for SEO and sharing."""
     # Old links pass the full id; new slug URLs end in the 8-char short id.
-    sub = db.get_submission(ref) or db.get_submission_by_prefix(ref.rsplit("-", 1)[-1])
+    # Be forgiving: a share target may have appended junk (a caption) after the
+    # id, so take the leading hex of the last hyphen segment and recover.
+    tail = ref.rsplit("-", 1)[-1]
+    short_m = re.match(r"[0-9A-Za-z]+", tail)  # leading id chars, stops at a space/junk
+    sub = db.get_submission(ref) or (
+        db.get_submission_by_prefix(short_m.group(0)[:8]) if short_m else None)
     if not sub:
         return JSONResponse({"error": "Not found."}, status_code=404)
 

@@ -210,6 +210,10 @@ check("share: old id 301-redirects to slug",
       r_old.status_code == 301 and r_old.headers["location"] == "/r/unplayable-legacy1")
 check("share: canonical slug resolves directly",
       client.get("/r/unplayable-legacy1", follow_redirects=False).status_code == 200)
+# A share target that appended a caption after the id must still recover (301).
+r_junk = client.get("/r/unplayable-legacy1 PLAY IT OR TAKE UNPLAYABLE", follow_redirects=False)
+check("share: junk appended after id still recovers to the slug",
+      r_junk.status_code == 301 and r_junk.headers["location"] == "/r/unplayable-legacy1")
 
 # GEO: the share page carries a valid QAPage and a self-canonical (the slug).
 import json as _json, re as _re  # noqa: E402

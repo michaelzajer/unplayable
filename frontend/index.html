@@ -648,10 +648,10 @@
   // and WhatsApp/social unfurl the photo preview from the /r/ page's og:image.
   async function shareLie(item) {
     const url = location.origin + (item.share_path || ("/r/" + item.id));
-    const text = (item.verdict || "A golf ruling")
-      + (item.rule_number ? " — Rule " + item.rule_number : "");
+    // Share ONLY the link (no free text) — some targets merge text into the URL
+    // and corrupt it. The /r/ page's og:image/og:title carry the verdict + photo.
     if (navigator.share) {
-      try { await navigator.share({ title: "GolfRules.pro", text, url }); } catch (e) { /* dismissed */ }
+      try { await navigator.share({ title: "GolfRules.pro", url }); } catch (e) { /* dismissed */ }
     } else {
       try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
       catch (e) { prompt("Copy this link:", url); }
@@ -1148,10 +1148,9 @@
     btn.disabled = true;
     try {
       const url = location.origin + (lastResult.share_path || ("/r/" + lastResult.id));
-      const text = (lastResult.verdict || "My golf ruling")
-        + (lastResult.rule_number ? " — Rule " + lastResult.rule_number : "");
+      // Link only — no free text (some targets merge it into the URL and break it).
       if (navigator.share) {
-        await navigator.share({ title: "GolfRules.pro", text, url });
+        await navigator.share({ title: "GolfRules.pro", url });
       } else {
         try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
         catch (e) { prompt("Copy this link:", url); }
