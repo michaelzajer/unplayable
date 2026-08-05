@@ -373,12 +373,21 @@ def submit_feedback(
     return {"ok": True}
 
 
-# Colour + label per ruling type, mirrored from the frontend.
+# Colour + label per ruling type (bar + label), mirrored from the frontend.
 _STAKE = {
     "free_relief": ("#0FA958", "Free relief"),
     "penalty": ("#C8102E", "Penalty"),
     "play_as_it_lies": ("#1B2420", "Play it as it lies"),
     "unclear": ("#F5A623", "Ruling"),
+}
+
+# Stamp ink per ruling type — matches the feed's VERDICT_TONE (play_as_it_lies is
+# RED like penalty, not the dark bar colour), so the share stamp matches the feed.
+_STAMP_INK = {
+    "free_relief": "#0FA958",
+    "penalty": "#C8102E",
+    "play_as_it_lies": "#C8102E",
+    "unclear": "#1B2420",
 }
 
 def _luck_bucket(avg: float) -> tuple[str, str]:
@@ -430,7 +439,9 @@ def share(ref: str, request: Request):
     verdict = esc(sub.get("verdict") or "Ruling")
     situation = esc(sub.get("situation"))
     explanation = esc(sub.get("explanation"))
-    stake_color, label = _STAKE.get(sub.get("ruling_type") or "unclear", _STAKE["unclear"])
+    ruling_type = sub.get("ruling_type") or "unclear"
+    stake_color, label = _STAKE.get(ruling_type, _STAKE["unclear"])
+    stamp_ink = _STAMP_INK.get(ruling_type, "#1B2420")
 
     image_path = sub.get("image_path")
     if image_path:
@@ -520,6 +531,7 @@ def share(ref: str, request: Request):
         .replace("__TWITTER_CARD__", tw_card)
         .replace("__IMAGE_BLOCK__", image_block)
         .replace("__STAKE__", stake_color)
+        .replace("__STAMP_INK__", stamp_ink)
         .replace("__LABEL__", esc(label))
         .replace("__VERDICT__", verdict)
         .replace("__SITUATION__", situation)
