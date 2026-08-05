@@ -189,7 +189,9 @@ until hit rate improves → normal release cycle.
 - Cancel Titan email trial (see Email above).
 - No Anthropic spend cap and no access code — rate limits only (rulings 10/5min/IP).
 - `CODE-REVIEW.md` open items: vote integrity, public feed/images.
-- Roadmap: GPS location toggle → course auto-match.
+- **Future features and monetisation: see `ROADMAP.md`** (share-the-URL,
+  GPS/course auto-match, course pages, Phase 2 Firestore, monetisation options,
+  Gemini prompt-tuning). Grow first, monetise second.
 
 ## Working conventions
 
