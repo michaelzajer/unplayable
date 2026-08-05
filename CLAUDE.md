@@ -118,9 +118,16 @@ Every page has a unique title, meta description, canonical, and OG/Twitter tags.
 - **index.html** (app): canonical + og:url point at `/app` (its post-cutover home),
   so it does not compete with the landing for `/`.
 - **about.html**: AboutPage JSON-LD. **feedback.html**: `noindex, follow` (thin form).
-- **/r/ share pages** (share.html + `share()`): per-ruling QAPage JSON-LD (lie =
-  question, verdict+rule = answer), self-canonical, og:image = the lie photo or
-  the branded card fallback.
+- **/r/ share pages** (share.html + `share()`): readable slug URLs
+  `/r/<slug>-<shortid>` (slug from `situation`; `db.ruling_slug`). Route resolves
+  an old bare id OR a slug (`get_submission_by_prefix` on the trailing short id)
+  and 301s any non-canonical ref to the slug. Per-ruling QAPage JSON-LD, self-
+  canonical = the slug, og:image = the lie photo or the branded card fallback.
+  Feed items + the ruling response carry `share_path`; the sitemap lists slugs.
+- **Sharing = the URL, not a PNG** (growth loop). Feed + result Share buttons use
+  the Web Share API with the `/r/<slug>` link (clipboard fallback on desktop);
+  WhatsApp/social unfurl the og:image preview. `buildShareImage()` is retained but
+  now unused — kept for the roadmap "branded og:image card" refinement.
 - Brand/GEO assets served from `frontend/` via backend routes (explicit, never a
   catch-all — that would shadow /robots.txt etc.): `/og-image.png` (1200×630
   navy card), `/favicon.ico|.png`, `/apple-touch-icon.png`, and `/llms.txt`

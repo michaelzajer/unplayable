@@ -50,7 +50,7 @@ def _write_sitemap() -> str:
         rows = db.list_shared()
         for r in rows:
             lastmod = str(r["created_at"])[:10] if r["created_at"] else None
-            urls.append((f"{base}/r/{r['id']}", lastmod))
+            urls.append((f"{base}{r['share_path']}", lastmod))
         note = f"{len(rows)} shared lies"
     except Exception as e:  # DB unreachable at build time — ship the static pages.
         print(f"  ! sitemap: database not reachable ({type(e).__name__}); "

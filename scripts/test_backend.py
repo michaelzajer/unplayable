@@ -204,10 +204,17 @@ check("share page: rating in preview description", "Rated HARD LUCK (4.5/5) by 2
 share_none = client.get(f"/r/{new_id}").text  # no ratings at this point
 check("share page: honest empty state", "NOT RATED YET" in share_none)
 
-# GEO: the share page carries a valid QAPage and a self-canonical.
+# Slug URLs: old id 301-redirects to the readable canonical slug.
+r_old = client.get("/r/legacy1", follow_redirects=False)
+check("share: old id 301-redirects to slug",
+      r_old.status_code == 301 and r_old.headers["location"] == "/r/unplayable-legacy1")
+check("share: canonical slug resolves directly",
+      client.get("/r/unplayable-legacy1", follow_redirects=False).status_code == 200)
+
+# GEO: the share page carries a valid QAPage and a self-canonical (the slug).
 import json as _json, re as _re  # noqa: E402
-check("share page: self-canonical present",
-      'rel="canonical" href="http://testserver/r/legacy1"' in share_html)
+check("share page: self-canonical is the slug URL",
+      'rel="canonical" href="http://testserver/r/unplayable-legacy1"' in share_html)
 m = _re.search(r'ld\+json">(.*?)</script>', share_html, _re.S)
 check("share page: JSON-LD block present", m is not None)
 qa = _json.loads(m.group(1).replace("\\u003c", "<"))
@@ -236,6 +243,7 @@ for s in ("sA", "sB", "sC"):
     client.post("/api/vote", headers=H, data={"submission_id": new_id, "stamp": "1", "session_id": s})
 worst = client.get("/api/feed", params={"sort": "worst"}).json()
 check("hardest-luck sort: roughest lies first", worst[0]["id"] == "legacy1")
+check("feed exposes the readable share_path", worst[0]["share_path"] == "/r/unplayable-legacy1")
 latest = client.get("/api/feed").json()
 check("latest sort: newest first", latest[0]["id"] == new_id)
 mine = client.get("/api/feed", params={"mine": 1, "session_id": "owner-sess"}).json()
@@ -254,7 +262,7 @@ check("sitemap: valid xml with home + about",
       and r_map.headers["content-type"].startswith("application/xml")
       and "<loc>https://golfrules.pro/</loc>" in r_map.text
       and "<loc>https://golfrules.pro/about</loc>" in r_map.text)
-check("sitemap: shared lie listed", f"/r/legacy1</loc>" in r_map.text)
+check("sitemap: shared lie listed as slug", "/r/unplayable-legacy1</loc>" in r_map.text)
 check("sitemap: unshared lie NOT listed", extra_id not in r_map.text)
 # robots.txt must NOT redirect on the direct run.app host (crawlers treat a
 # redirected robots.txt as unreachable) — it serves disallow-all instead.

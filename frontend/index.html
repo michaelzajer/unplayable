@@ -644,34 +644,18 @@
     render();
   }
 
+  // Share the LINK to the ruling, not a PNG — a shared link drives traffic back
+  // and WhatsApp/social unfurl the photo preview from the /r/ page's og:image.
   async function shareLie(item) {
-    const url = location.origin + "/r/" + item.id;
-    const caption = (item.verdict || "A golf ruling")
-      + (item.rule_number ? " — Rule " + item.rule_number : "") + "\n" + url;
-    // First choice: share the composed photo itself (what lands on Instagram,
-    // WhatsApp, Messages as a picture — stamps, verdict and all).
-    try {
-      const blob = await buildShareImage(item,
-        /^[1-5]$/.test(String(item.my_luck)) ? String(item.my_luck) : null,
-        item.stamp_counts || null, false);
-      const file = new File([blob], "golfrulespro.jpg", { type: "image/jpeg" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: caption, title: "GolfRules.pro" });
-        return;
-      }
-      if (!navigator.share) { // desktop fallback: download the image, copy the link
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "golfrulespro.jpg";
-        a.click();
-        try { await navigator.clipboard.writeText(url); } catch (e) {}
-        alert("Image saved and link copied — post it wherever you like.");
-        return;
-      }
-    } catch (e) { /* fall through to link share */ }
-    try {
-      await navigator.share({ title: "GolfRules.pro", text: caption, url });
-    } catch (e) { /* dismissed */ }
+    const url = location.origin + (item.share_path || ("/r/" + item.id));
+    const text = (item.verdict || "A golf ruling")
+      + (item.rule_number ? " — Rule " + item.rule_number : "");
+    if (navigator.share) {
+      try { await navigator.share({ title: "GolfRules.pro", text, url }); } catch (e) { /* dismissed */ }
+    } else {
+      try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
+      catch (e) { prompt("Copy this link:", url); }
+    }
   }
 
   let feedItems = [];
@@ -1163,25 +1147,17 @@
     const btn = $("shareBtn");
     btn.disabled = true;
     try {
-      const blob = await buildShareImage(lastResult, null, null, true);
-      const file = new File([blob], "golfrulespro.jpg", { type: "image/jpeg" });
-      const url = location.origin + "/r/" + lastResult.id;
+      const url = location.origin + (lastResult.share_path || ("/r/" + lastResult.id));
       const text = (lastResult.verdict || "My golf ruling")
-        + (lastResult.rule_number ? " — Rule " + lastResult.rule_number : "") + "\n" + url;
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text, title: "GolfRules.pro" });
-      } else if (navigator.share) {
-        await navigator.share({ text, url, title: "GolfRules.pro" });
+        + (lastResult.rule_number ? " — Rule " + lastResult.rule_number : "");
+      if (navigator.share) {
+        await navigator.share({ title: "GolfRules.pro", text, url });
       } else {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "golfrulespro.jpg";
-        a.click();
-        alert("Image saved — post it to Instagram, TikTok or wherever you like.");
+        try { await navigator.clipboard.writeText(url); alert("Link copied — paste it anywhere."); }
+        catch (e) { prompt("Copy this link:", url); }
       }
     } catch (e) {
-      // user dismissed the sheet, or sharing failed — nothing to do
+      // user dismissed the share sheet — nothing to do
     } finally {
       btn.disabled = false;
     }

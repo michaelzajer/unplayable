@@ -108,6 +108,30 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+import re as _re  # noqa: E402
+
+
+def ruling_slug(situation: str | None, verdict: str | None, sid: str) -> str:
+    """Readable, keyword-rich slug for a share URL: '<words>-<shortid>', e.g.
+    'ball-against-a-tree-root-a2691fd7'. The trailing 8 hex chars uniquely
+    resolve back to the submission (see get_submission_by_prefix)."""
+    text = (situation or verdict or "golf-ruling")
+    slug = _re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:60].strip("-")
+    short = sid.replace("-", "")[:8]
+    return f"{slug}-{short}" if slug else short
+
+
+def get_submission_by_prefix(prefix: str):
+    """Resolve a submission from the short id at the end of a slug URL."""
+    if not prefix or len(prefix) < 6:
+        return None
+    with engine.connect() as conn:
+        rows = conn.execute(
+            select(submission).where(submission.c.id.like(prefix + "%")).limit(2)
+        ).mappings().all()
+    return dict(rows[0]) if len(rows) == 1 else None
+
+
 def init_db() -> None:
     metadata.create_all(engine)
     insp = inspect(engine)
@@ -244,6 +268,7 @@ def get_feed(limit: int = 50, sort: str = "latest",
         r["worst_score"] = sum(STAMP_WEIGHTS.get(k, 0) * n for k, n in tally.items())
         r["my_luck"] = mine_luck.get(r["id"])
         r["my_call"] = mine_call.get(r["id"])
+        r["share_path"] = "/r/" + ruling_slug(r.get("situation"), r.get("verdict"), r["id"])
 
     if sort == "worst":
         rows.sort(key=lambda r: (r["worst_score"], r["created_at"]), reverse=True)
@@ -260,14 +285,16 @@ def set_shared(submission_id: str) -> bool:
 
 
 def list_shared() -> list[dict]:
-    """Id + created_at for every lie on the public feed — feeds the sitemap."""
+    """Slug path + created_at for every lie on the public feed — feeds the sitemap."""
     with engine.connect() as conn:
         rows = conn.execute(
-            select(submission.c.id, submission.c.created_at)
+            select(submission.c.id, submission.c.created_at,
+                   submission.c.situation, submission.c.verdict)
             .where(submission.c.shared.is_(True))
             .order_by(submission.c.created_at.desc())
         ).all()
-    return [{"id": r[0], "created_at": r[1]} for r in rows]
+    return [{"id": r[0], "created_at": r[1],
+             "share_path": "/r/" + ruling_slug(r[2], r[3], r[0])} for r in rows]
 
 
 def add_vote(submission_id: str, session_id: str, stamp: str) -> bool:

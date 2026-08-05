@@ -18,6 +18,15 @@ group chat but a viral dead end, because there is no way back to the site.
 - Later refinement: make the `/r/` `og:image` the branded verdict card rather than
   the raw photo, so the unfurl looks like the app.
 - Effort: ~1 hour. Highest-leverage, lowest-cost growth change.
+- Paired with descriptive slug URLs (below).
+
+### Descriptive slug URLs for share pages
+`/r/{uuid}` is opaque — the raw UUID reads like spam in a shared link and does
+nothing for SEO. Move to `/r/{slug}-{shortid}`, e.g.
+`/r/ball-against-a-tree-root-a2691f`, slug derived from the lie's `situation`.
+Puts the words people search into the URL and makes shared links trustworthy and
+clickable. Keep old `/r/{uuid}` working via a 301 to the canonical slug so no
+existing link breaks. Built together with share-the-URL.
 
 ### GPS location → course auto-match
 Auto-fill the course a lie was taken on (currently typed by hand).

@@ -334,7 +334,7 @@ def sitemap() -> Response:
     urls: list[tuple[str, str | None]] = [(f"{base}/", None), (f"{base}/about", None)]
     for row in db.list_shared():
         lastmod = str(row["created_at"])[:10] if row["created_at"] else None
-        urls.append((f"{base}/r/{row['id']}", lastmod))
+        urls.append((f"{base}{row['share_path']}", lastmod))
     parts = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for loc, lastmod in urls:
@@ -395,12 +395,21 @@ def _luck_bucket(avg: float) -> tuple[str, str]:
 _SHARE_TEMPLATE = (FRONTEND_DIR / "share.html").read_text(encoding="utf-8")
 
 
-@app.get("/r/{submission_id}")
-def share(submission_id: str, request: Request):
-    """Public, ungated page for one ruling — what gets shared to mates."""
-    sub = db.get_submission(submission_id)
+@app.get("/r/{ref}")
+def share(ref: str, request: Request):
+    """Public, ungated page for one ruling — what gets shared to mates.
+
+    Accepts either the new readable slug (`ball-against-a-tree-root-a2691fd7`) or
+    a bare submission id (old links). Non-canonical refs 301 to the slug URL, so
+    there is one canonical address per ruling for SEO and sharing."""
+    # Old links pass the full id; new slug URLs end in the 8-char short id.
+    sub = db.get_submission(ref) or db.get_submission_by_prefix(ref.rsplit("-", 1)[-1])
     if not sub:
         return JSONResponse({"error": "Not found."}, status_code=404)
+
+    canonical_ref = db.ruling_slug(sub.get("situation"), sub.get("verdict"), sub["id"])
+    if ref != canonical_ref:
+        return RedirectResponse(f"/r/{canonical_ref}", status_code=301)
 
     # Build an absolute base URL. Behind Firebase Hosting -> Cloud Run the
     # original domain arrives in x-forwarded-host; TLS ends upstream, so trust
@@ -468,7 +477,7 @@ def share(submission_id: str, request: Request):
               + "</script>")
 
     # The crowd's read: luck average as one pill, call thumbs as two more.
-    counts = db.get_stamp_counts(submission_id)
+    counts = db.get_stamp_counts(sub["id"])
     luck_counts = {k: n for k, n in counts.items() if k.isdigit()}
     total = sum(luck_counts.values())
     pills = ""
@@ -499,7 +508,7 @@ def share(submission_id: str, request: Request):
         _SHARE_TEMPLATE
         .replace("__TITLE__", verdict)
         .replace("__DESC__", desc)
-        .replace("__SHARE_URL__", esc(f"{base}/r/{submission_id}"))
+        .replace("__SHARE_URL__", esc(f"{base}/r/{canonical_ref}"))
         .replace("__OG_IMAGE__", og_image)
         .replace("__OG_IMAGE_TW__", og_image_tw)
         .replace("__JSONLD__", jsonld)
@@ -586,6 +595,8 @@ async def ruling(
               "course": course, "hole": hole_num, "played_on": played}
     result["id"] = db.insert_submission(record)
     result["image_path"] = image_path
+    result["share_path"] = "/r/" + db.ruling_slug(
+        result.get("situation"), result.get("verdict"), result["id"])
     result["stored"] = True
     return result
 
