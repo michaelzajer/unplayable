@@ -646,7 +646,12 @@
 
   // Share the LINK to the ruling, not a PNG — a shared link drives traffic back
   // and WhatsApp/social unfurl the photo preview from the /r/ page's og:image.
-  function recordShare(id) { try { fetch("/api/share/" + id, { method: "POST" }); } catch (e) {} }
+  function recordShare(id) {
+    // Internal count (drives The Feed's most-shared sort).
+    try { fetch("/api/share/" + id, { method: "POST" }); } catch (e) {}
+    // Google Analytics 4 'share' event (visible in GA reports).
+    try { if (window.gtag) gtag("event", "share", { content_type: "ruling", item_id: id }); } catch (e) {}
+  }
 
   async function shareLie(item) {
     const url = location.origin + (item.share_path || ("/r/" + item.id));

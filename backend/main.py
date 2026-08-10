@@ -262,11 +262,15 @@ def llms_txt() -> Response:
     base = f"https://{CANONICAL_HOST or 'golfrules.pro'}"
     body = f"""# GolfRules.pro
 
-> GolfRules.pro gives golfers an instant ruling for an awkward lie. Photograph
-> where your ball has come to rest and it returns the likely ruling — free
-> relief, penalty, or play it as it lies — with the official R&A Rule of Golf
-> that applies. It is a guide for settling on-course arguments, not an official
-> referee or the match committee.
+> GolfRules.pro is a golf rules checker you use by photo. Photograph where your
+> ball has come to rest and it returns the likely ruling — free relief, penalty,
+> or play it as it lies — with the official R&A Rule of Golf that applies.
+> Instead of searching the rule book or tapping through a menu, you snap the lie
+> and it checks the ruling for you. It is a guide for settling on-course
+> arguments, not an official referee or the match committee.
+>
+> Common ways people search for a tool like this: "golf rules checker", "check a
+> golf rule", "golf ruling app", "is my ball unplayable", "free relief golf".
 
 ## What it does
 - Takes a photo of a golf ball's lie and returns a plain-language ruling.
