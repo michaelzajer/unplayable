@@ -10,6 +10,11 @@ The repo/folder is still named `unplayable` — that was the working title.
 - **Backend**: FastAPI, `backend/main.py`. SQLAlchemy Core in `backend/db.py` —
   SQLite locally (`data/`), Neon Postgres in prod via `DATABASE_URL`. Lightweight
   in-code migrations run inside `init_db()`; extend that chain, never hand-migrate.
+- **Ruling speed**: the upload is downscaled server-side before the AI call
+  (`_prepare_image` in `main.py`: EXIF-fixed, ≤1568px long edge, JPEG q82 — ~80%
+  smaller, faster + cheaper), and the Gemini call and the Storage upload run
+  CONCURRENTLY (`asyncio.gather`) instead of in series. An off-topic photo that
+  was uploaded in parallel is deleted (`storage.delete_image`). Needs Pillow.
 - **Image storage**: `backend/storage.py`. When `FIREBASE_STORAGE_BUCKET` is set
   (prod), lie photos upload to Firebase Storage and `image_path` is an absolute
   `https://storage.googleapis.com/<bucket>/lies/<uuid>.jpg` URL served from the

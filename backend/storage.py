@@ -54,3 +54,12 @@ def store_image(data: bytes, content_type: str) -> str:
     # Bucket grants allUsers objectViewer (public read) — see CLAUDE.md. The
     # public URL is served from Google's edge, not Cloud Run.
     return f"https://storage.googleapis.com/{BUCKET}/{name}"
+
+
+def delete_image(image_path: str) -> None:
+    """Remove a stored image (used when a ruling turns out to be off-topic)."""
+    prefix = f"https://storage.googleapis.com/{BUCKET}/"
+    if BUCKET and image_path.startswith(prefix):
+        _get_bucket().blob(image_path[len(prefix):]).delete()
+    elif image_path.startswith("/api/image/"):
+        db.delete_image(image_path.removeprefix("/api/image/"))

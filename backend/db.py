@@ -195,6 +195,11 @@ def get_image(image_id: str):
     return (row.content_type, row.data) if row else None
 
 
+def delete_image(image_id: str) -> None:
+    with engine.begin() as conn:
+        conn.execute(delete(image).where(image.c.id == image_id))
+
+
 def insert_submission(rec: dict) -> str:
     sid = str(uuid.uuid4())
     with engine.begin() as conn:

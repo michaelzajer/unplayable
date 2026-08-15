@@ -1,7 +1,9 @@
 """GolfRules.pro API. Run from the project root with:  uvicorn backend.main:app --reload"""
 
+import asyncio
 import base64
 import html
+import io
 import json
 import os
 import re
@@ -44,6 +46,27 @@ def require_access_code(x_access_code: str | None = Header(default=None)) -> Non
 MAX_IMAGE_BYTES = 6 * 1024 * 1024
 MAX_NOTE_LEN = 280
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+# Downscale before the AI call: a phone photo is far larger than the model needs.
+# A smaller image uploads faster, is processed faster, costs less, and is served
+# faster from the CDN. Same image is used for the ruling and for storage.
+IMAGE_MAX_EDGE = 1568
+
+
+def _prepare_image(raw: bytes) -> tuple[bytes, str]:
+    """Fix orientation, strip EXIF, cap the long edge, re-encode as JPEG.
+    Falls back to the original bytes on any decode error."""
+    try:
+        from PIL import Image, ImageOps
+        im = Image.open(io.BytesIO(raw))
+        im = ImageOps.exif_transpose(im)          # honour rotation, then drop EXIF
+        im = im.convert("RGB")
+        im.thumbnail((IMAGE_MAX_EDGE, IMAGE_MAX_EDGE))  # only shrinks; keeps aspect
+        out = io.BytesIO()
+        im.save(out, format="JPEG", quality=82, optimize=True)
+        return out.getvalue(), "image/jpeg"
+    except Exception:  # noqa: BLE001 - never fail a ruling over a resize
+        return raw, "image/jpeg"
 
 
 # --- Rate limiting (in-memory, per instance) ---
@@ -602,17 +625,28 @@ async def ruling(
     if raw is None and not note:
         return JSONResponse({"error": "Send a photo or describe the lie."}, status_code=400)
 
-    image_b64 = base64.b64encode(raw).decode() if raw is not None else None
-
-    result = adapter.get_ruling(image_b64, media_type, note)
-
-    if result.get("on_topic") is False:
-        return {**result, "id": None, "image_path": None, "stored": False}
-
     image_path = None
     if raw is not None:
-        # Firebase Storage in prod (served from the CDN); DB fallback locally.
-        image_path = storage.store_image(raw, media_type)
+        # Shrink once; use the same bytes for the AI call and for storage.
+        raw, media_type = _prepare_image(raw)
+        image_b64 = base64.b64encode(raw).decode()
+        # Run the AI ruling and the image upload CONCURRENTLY — the upload no
+        # longer sits in series after the (slow) ruling call.
+        result, image_path = await asyncio.gather(
+            asyncio.to_thread(adapter.get_ruling, image_b64, media_type, note),
+            asyncio.to_thread(storage.store_image, raw, media_type),
+        )
+    else:
+        result = await asyncio.to_thread(adapter.get_ruling, None, media_type, note)
+
+    if result.get("on_topic") is False:
+        # Not a golf photo: drop the image we uploaded in parallel; keep nothing.
+        if image_path:
+            try:
+                storage.delete_image(image_path)
+            except Exception:  # noqa: BLE001
+                pass
+        return {**result, "id": None, "image_path": None, "stored": False}
 
     record = {**result, "image_path": image_path, "user_note": note, "session_id": session_id,
               "course": course, "hole": hole_num, "played_on": played}
